@@ -1,0 +1,38 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <filter id="deepseekLogoGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#38bdf8" flood-opacity="0.6"/>
+    </filter>
+    <linearGradient id="emblemGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <linearGradient id="chinGradient" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#deepseekLogoGlow)">
+    <!-- Main Upper Ears / Horns & Cheek Polygons -->
+    <!-- Left outer wing -->
+    <polygon points="185,130 170,195 160,265 190,250 200,190" fill="url(#emblemGradient)" />
+    <!-- Right outer wing -->
+    <polygon points="315,130 330,195 340,265 310,250 300,190" fill="url(#emblemGradient)" />
+
+    <!-- Center Mask Body -->
+    <polygon points="185,130 200,190 250,240 300,190 315,130 295,205 250,305 205,205" fill="url(#emblemGradient)" />
+
+    <!-- Outer Lower Jaws -->
+    <polygon points="160,265 205,250 250,310 205,280" fill="url(#emblemGradient)" />
+    <polygon points="340,265 295,250 250,310 295,280" fill="url(#emblemGradient)" />
+
+    <!-- Lower V Chin Frame -->
+    <polygon points="160,265 250,365 220,315 190,270" fill="url(#emblemGradient)" />
+    <polygon points="340,265 250,365 280,315 310,270" fill="url(#emblemGradient)" />
+
+    <!-- Center Glowing Chin Core -->
+    <polygon points="250,305 268,340 250,368 232,340" fill="url(#chinGradient)" />
+  </g>
+</svg>

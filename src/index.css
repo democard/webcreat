@@ -1,0 +1,27 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0b0f17;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, pre, kbd, .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+/* 优雅平滑的柔和边框 */
+.prose h1, .prose h2, .prose h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+}
+
+.prose p {
+  line-height: 1.8;
+  color: #94a3b8;
+}
