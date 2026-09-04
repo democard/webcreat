@@ -97,7 +97,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 relative z-10">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 relative z-10">
         {currentTab === "home" && (
           <Home
             posts={postsData}

@@ -23,7 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/75 backdrop-blur-xl transition-colors">
-      <div className="max-w-4xl mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
         {/* Brand with emblem */}
         <button
           onClick={() => onSelectTab("home")}

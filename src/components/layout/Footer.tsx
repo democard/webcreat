@@ -1,10 +1,10 @@
-﻿import React from "react";
+import React from "react";
 import { Github, Mail, Heart } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
     <footer className="w-full border-t border-slate-800/80 mt-20 py-8 bg-slate-950/40 text-xs text-slate-500 transition-colors">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-1.5 font-mono">
           <span>© 2026</span>
           <a

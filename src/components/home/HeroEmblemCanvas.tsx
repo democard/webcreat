@@ -45,23 +45,24 @@ export const HeroEmblemCanvas: React.FC = () => {
 
     const initCanvas = () => {
       const rect = container.getBoundingClientRect();
-      width = rect.width || 320;
-      height = rect.height || 320;
+      width = rect.width || 420;
+      height = rect.height || 420;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const cx = width * 0.5;
-      const cy = height * 0.5;
-      const scale = Math.min(width, height) * 0.42;
+      const cy = height * 0.505;
+      const scale = Math.min(width, height) * 0.52;
+      mouse.radius = Math.min(width, height) * 0.35;
 
       particles = [];
       for (let i = 0; i < emblemPoints.length; i++) {
         const pt = emblemPoints[i];
         const px = cx + pt.nx * scale;
         const py = cy + pt.ny * scale;
-        const baseAlpha = pt.brightness * 0.65 + 0.2;
+        const baseAlpha = Math.min(1, pt.brightness * 0.7 + 0.25);
 
         particles.push({
           originX: px,
@@ -70,7 +71,7 @@ export const HeroEmblemCanvas: React.FC = () => {
           y: py,
           vx: 0,
           vy: 0,
-          size: 1.4,
+          size: 1.65,
           alpha: baseAlpha,
           baseAlpha: baseAlpha,
           colorOffset: (pt.nx + pt.ny) * 2,
@@ -136,28 +137,8 @@ export const HeroEmblemCanvas: React.FC = () => {
       mouse.x += (mouse.targetX - mouse.x) * 0.1;
       mouse.y += (mouse.targetY - mouse.y) * 0.1;
 
+      // 画布完全透明清空，绝不在画布上绘制任何矩形底色或方形剪裁渐变
       ctx.clearRect(0, 0, width, height);
-
-      const cx = width * 0.5;
-      const cy = height * 0.5;
-
-      // 核心局部星云光晕
-      const haloGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, width * 0.5);
-      haloGrad.addColorStop(0, "rgba(56, 189, 248, 0.16)");
-      haloGrad.addColorStop(0.5, "rgba(129, 140, 248, 0.06)");
-      haloGrad.addColorStop(1, "transparent");
-      ctx.fillStyle = haloGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // 鼠标局部光感
-      if (mouse.active) {
-        const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, mouse.radius);
-        mouseGlow.addColorStop(0, "rgba(56, 189, 248, 0.18)");
-        mouseGlow.addColorStop(0.6, "rgba(168, 85, 247, 0.05)");
-        mouseGlow.addColorStop(1, "transparent");
-        ctx.fillStyle = mouseGlow;
-        ctx.fillRect(0, 0, width, height);
-      }
 
       // 渲染 1807 颗流体图腾粒子
       for (let i = 0; i < particles.length; i++) {
@@ -239,8 +220,15 @@ export const HeroEmblemCanvas: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[280px] sm:max-w-[340px] aspect-square flex items-center justify-center cursor-pointer select-none"
+      className="relative w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] xl:max-w-[520px] aspect-square flex items-center justify-center cursor-pointer select-none"
     >
+      {/* 柔和扩散的星际极光光晕：CSS 圆形全景径向模糊，绝无任何直角或画布边界裁剪 */}
+      <div
+        className="absolute inset-4 -z-10 rounded-full bg-gradient-to-tr from-cyan-500/10 via-sky-500/5 to-indigo-500/10 blur-3xl pointer-events-none transform-gpu animate-pulse"
+        style={{ animationDuration: "5s" }}
+      />
+      <div className="absolute inset-12 -z-10 rounded-full bg-cyan-400/5 blur-2xl pointer-events-none" />
+
       <canvas
         ref={canvasRef}
         className="w-full h-full block"
