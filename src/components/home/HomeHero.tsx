@@ -1,5 +1,5 @@
 import React from "react";
-import { Github, BookOpen, Mail, Sparkles, Terminal, Activity, Layers } from "lucide-react";
+import { Github, BookOpen, Mail } from "lucide-react";
 
 interface HomeHeroProps {
   onNavigate: (tab: string) => void;
@@ -17,7 +17,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <section className="space-y-6 pt-6 sm:pt-10 relative z-10 max-w-xl">
+    <section className="space-y-6 pt-6 sm:pt-10 relative z-10 max-w-xl lg:max-w-[490px]">
       {/* 状态徽章 */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/5">
         <span className="relative flex h-2 w-2">

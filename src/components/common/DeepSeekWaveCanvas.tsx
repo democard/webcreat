@@ -27,19 +27,30 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
     updateCanvasSize();
 
+    // 精确锚定图腾空间位置：与主内容区 (max-w-4xl: 896px) 紧密贴合，永不与文字及下方卡片碰撞
     const getEmblemCenter = () => {
-      const isDesktop = width > 1024;
-      const cx = isDesktop ? width * 0.72 : width * 0.5;
-      const cy = isDesktop ? Math.min(height * 0.38, 320) : Math.min(height * 0.32, 240);
-      return { cx, cy };
+      const isDesktop = width >= 1024;
+      let cx = width * 0.5;
+      let cy = 200;
+      let scale = Math.min(width * 0.32, 130);
+
+      if (isDesktop) {
+        // 桌面端：以 896px 居中容器的右半侧中心为基准
+        const mainHalfWidth = Math.min(width * 0.5, 448);
+        cx = width * 0.5 + mainHalfWidth * 0.58;
+        cy = 230;
+        scale = 145;
+      }
+
+      return { cx, cy, scale, isDesktop };
     };
 
     const mouse = {
       x: width * 0.5,
-      y: 280,
+      y: 230,
       targetX: width * 0.5,
-      targetY: 280,
-      radius: 190,
+      targetY: 230,
+      radius: 170,
       active: false,
     };
 
@@ -62,18 +73,16 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
     const initParticles = () => {
       particles = [];
-      const { cx, cy } = getEmblemCenter();
-      const isDesktop = width > 1024;
-      const emblemScale = isDesktop ? Math.min(width * 0.24, 220) : Math.min(width * 0.34, 150);
+      const { cx, cy, scale, isDesktop } = getEmblemCenter();
 
-      // 1. 载入图腾核心粒子 (移动端透明度减半作为柔和背景水印，桌面端保持锐利明亮)
+      // 1. 载入 1807 颗图腾核心粒子
       for (let i = 0; i < emblemPoints.length; i++) {
         const pt = emblemPoints[i];
-        const px = cx + pt.nx * emblemScale;
-        const py = cy + pt.ny * emblemScale;
+        const px = cx + pt.nx * scale;
+        const py = cy + pt.ny * scale;
         const baseAlpha = isDesktop
-          ? pt.brightness * 0.55 + 0.15
-          : (pt.brightness * 0.35 + 0.08) * 0.5;
+          ? pt.brightness * 0.6 + 0.18
+          : (pt.brightness * 0.35 + 0.08) * 0.45;
 
         particles.push({
           originX: px,
@@ -82,7 +91,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
           y: py,
           vx: 0,
           vy: 0,
-          size: isDesktop ? 1.4 : 1.2,
+          size: isDesktop ? 1.35 : 1.15,
           alpha: baseAlpha,
           baseAlpha: baseAlpha,
           colorOffset: (pt.nx + pt.ny) * 2,
@@ -91,18 +100,18 @@ export const DeepSeekWaveCanvas: React.FC = () => {
         });
       }
 
-      // 2. 全局环境星轨微尘系统 (Ambient Stardust Mesh)
-      const step = isDesktop ? 40 : 60;
+      // 2. 全局环境微尘系统 (Ambient Stardust)
+      const step = isDesktop ? 42 : 64;
       for (let x = 0; x < width; x += step) {
         for (let y = 0; y < height; y += step) {
-          if (Math.random() > 0.65) {
+          if (Math.random() > 0.68) {
             const px = x + (Math.random() - 0.5) * 16;
             const py = y + (Math.random() - 0.5) * 16;
             const edx = px - cx;
             const edy = py - cy;
             const eDist = Math.sqrt(edx * edx + edy * edy);
-            if (eDist > (isDesktop ? 140 : 90)) {
-              const bgAlpha = Math.random() * 0.12 + 0.03;
+            if (eDist > (isDesktop ? 130 : 85)) {
+              const bgAlpha = Math.random() * 0.1 + 0.02;
               particles.push({
                 originX: px,
                 originY: py,
@@ -110,7 +119,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
                 y: py,
                 vx: 0,
                 vy: 0,
-                size: Math.random() * 1.2 + 0.6,
+                size: Math.random() * 1.1 + 0.5,
                 alpha: bgAlpha,
                 baseAlpha: bgAlpha,
                 colorOffset: Math.random() * 10,
@@ -148,7 +157,6 @@ export const DeepSeekWaveCanvas: React.FC = () => {
       mouse.active = false;
     };
 
-    // 网页后台挂起时暂停动画，节省 CPU 与电池
     const handleVisibilityChange = () => {
       if (document.hidden) {
         isRunning = false;
@@ -180,14 +188,13 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      const { cx, cy } = getEmblemCenter();
-      const isDesktop = width > 1024;
+      const { cx, cy, isDesktop } = getEmblemCenter();
 
       // 1. 全局平衡双核极光：
       // (1) 右侧主图腾极光 (Cyan / Violet)
-      const gradR = ctx.createRadialGradient(cx, cy, 20, cx, cy, isDesktop ? 380 : 250);
+      const gradR = ctx.createRadialGradient(cx, cy, 20, cx, cy, isDesktop ? 300 : 220);
       gradR.addColorStop(0, "rgba(56, 189, 248, 0.16)");
-      gradR.addColorStop(0.4, "rgba(129, 140, 248, 0.07)");
+      gradR.addColorStop(0.4, "rgba(129, 140, 248, 0.06)");
       gradR.addColorStop(0.8, "rgba(192, 132, 252, 0.02)");
       gradR.addColorStop(1, "transparent");
       ctx.fillStyle = gradR;
@@ -195,9 +202,9 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
       // (2) 左侧微弱平衡暗夜极光 (Deep Indigo / Emerald)
       if (isDesktop) {
-        const gradL = ctx.createRadialGradient(width * 0.22, height * 0.28, 10, width * 0.22, height * 0.28, 360);
-        gradL.addColorStop(0, "rgba(14, 165, 233, 0.08)");
-        gradL.addColorStop(0.5, "rgba(99, 102, 241, 0.04)");
+        const gradL = ctx.createRadialGradient(width * 0.25, 230, 10, width * 0.25, 230, 280);
+        gradL.addColorStop(0, "rgba(14, 165, 233, 0.07)");
+        gradL.addColorStop(0.5, "rgba(99, 102, 241, 0.03)");
         gradL.addColorStop(1, "transparent");
         ctx.fillStyle = gradL;
         ctx.fillRect(0, 0, width, height);
@@ -205,9 +212,9 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
       // 鼠标全屏流光互动
       if (mouse.active) {
-        const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
+        const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 180);
         mouseGlow.addColorStop(0, "rgba(56, 189, 248, 0.12)");
-        mouseGlow.addColorStop(0.5, "rgba(168, 85, 247, 0.04)");
+        mouseGlow.addColorStop(0.5, "rgba(168, 85, 247, 0.03)");
         mouseGlow.addColorStop(1, "transparent");
         ctx.fillStyle = mouseGlow;
         ctx.fillRect(0, 0, width, height);
