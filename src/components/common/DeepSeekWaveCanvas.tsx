@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { emblemPoints } from "../../data/emblemPoints";
 
 export const DeepSeekWaveCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,34 +26,16 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
     updateCanvasSize();
 
-    // 精确锚定图腾空间位置：与主内容区 (max-w-4xl: 896px) 紧密贴合，永不与文字及下方卡片碰撞
-    const getEmblemCenter = () => {
-      const isDesktop = width >= 1024;
-      let cx = width * 0.5;
-      let cy = 200;
-      let scale = Math.min(width * 0.32, 130);
-
-      if (isDesktop) {
-        // 桌面端：以 896px 居中容器的右半侧中心为基准
-        const mainHalfWidth = Math.min(width * 0.5, 448);
-        cx = width * 0.5 + mainHalfWidth * 0.58;
-        cy = 230;
-        scale = 145;
-      }
-
-      return { cx, cy, scale, isDesktop };
-    };
-
     const mouse = {
       x: width * 0.5,
-      y: 230,
+      y: 200,
       targetX: width * 0.5,
-      targetY: 230,
-      radius: 170,
+      targetY: 200,
+      radius: 180,
       active: false,
     };
 
-    interface Particle {
+    interface StardustParticle {
       originX: number;
       originY: number;
       x: number;
@@ -65,68 +46,33 @@ export const DeepSeekWaveCanvas: React.FC = () => {
       alpha: number;
       baseAlpha: number;
       colorOffset: number;
-      touchForce: number;
-      isEmblem: boolean;
     }
 
-    let particles: Particle[] = [];
+    let particles: StardustParticle[] = [];
 
     const initParticles = () => {
       particles = [];
-      const { cx, cy, scale, isDesktop } = getEmblemCenter();
+      const step = width > 1024 ? 42 : 60;
 
-      // 1. 载入 1807 颗图腾核心粒子
-      for (let i = 0; i < emblemPoints.length; i++) {
-        const pt = emblemPoints[i];
-        const px = cx + pt.nx * scale;
-        const py = cy + pt.ny * scale;
-        const baseAlpha = isDesktop
-          ? pt.brightness * 0.6 + 0.18
-          : (pt.brightness * 0.35 + 0.08) * 0.45;
-
-        particles.push({
-          originX: px,
-          originY: py,
-          x: px,
-          y: py,
-          vx: 0,
-          vy: 0,
-          size: isDesktop ? 1.35 : 1.15,
-          alpha: baseAlpha,
-          baseAlpha: baseAlpha,
-          colorOffset: (pt.nx + pt.ny) * 2,
-          touchForce: 0,
-          isEmblem: true,
-        });
-      }
-
-      // 2. 全局环境微尘系统 (Ambient Stardust)
-      const step = isDesktop ? 42 : 64;
       for (let x = 0; x < width; x += step) {
         for (let y = 0; y < height; y += step) {
-          if (Math.random() > 0.68) {
-            const px = x + (Math.random() - 0.5) * 16;
-            const py = y + (Math.random() - 0.5) * 16;
-            const edx = px - cx;
-            const edy = py - cy;
-            const eDist = Math.sqrt(edx * edx + edy * edy);
-            if (eDist > (isDesktop ? 130 : 85)) {
-              const bgAlpha = Math.random() * 0.1 + 0.02;
-              particles.push({
-                originX: px,
-                originY: py,
-                x: px,
-                y: py,
-                vx: 0,
-                vy: 0,
-                size: Math.random() * 1.1 + 0.5,
-                alpha: bgAlpha,
-                baseAlpha: bgAlpha,
-                colorOffset: Math.random() * 10,
-                touchForce: 0,
-                isEmblem: false,
-              });
-            }
+          if (Math.random() > 0.65) {
+            const px = x + (Math.random() - 0.5) * 20;
+            const py = y + (Math.random() - 0.5) * 20;
+            const baseAlpha = Math.random() * 0.12 + 0.02;
+
+            particles.push({
+              originX: px,
+              originY: py,
+              x: px,
+              y: py,
+              vx: 0,
+              vy: 0,
+              size: Math.random() * 1.2 + 0.6,
+              alpha: baseAlpha,
+              baseAlpha: baseAlpha,
+              colorOffset: Math.random() * 10,
+            });
           }
         }
       }
@@ -145,15 +91,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
       mouse.active = true;
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        mouse.targetX = e.touches[0].clientX;
-        mouse.targetY = e.touches[0].clientY;
-        mouse.active = true;
-      }
-    };
-
-    const handleMouseLeave = () => {
+    const handleLeave = () => {
       mouse.active = false;
     };
 
@@ -171,9 +109,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
 
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    window.addEventListener("touchend", handleMouseLeave);
+    window.addEventListener("mouseleave", handleLeave);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     let time = 0;
@@ -181,104 +117,71 @@ export const DeepSeekWaveCanvas: React.FC = () => {
     const render = () => {
       if (!isRunning) return;
 
-      time += 0.012;
+      time += 0.01;
 
       mouse.x += (mouse.targetX - mouse.x) * 0.08;
       mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
       ctx.clearRect(0, 0, width, height);
 
-      const { cx, cy, isDesktop } = getEmblemCenter();
-
-      // 1. 全局平衡双核极光：
-      // (1) 右侧主图腾极光 (Cyan / Violet)
-      const gradR = ctx.createRadialGradient(cx, cy, 20, cx, cy, isDesktop ? 300 : 220);
-      gradR.addColorStop(0, "rgba(56, 189, 248, 0.16)");
-      gradR.addColorStop(0.4, "rgba(129, 140, 248, 0.06)");
-      gradR.addColorStop(0.8, "rgba(192, 132, 252, 0.02)");
+      // 1. 全局双核星云微光背景
+      // (1) 右上侧轻微柔光
+      const gradR = ctx.createRadialGradient(width * 0.75, height * 0.25, 20, width * 0.75, height * 0.25, 380);
+      gradR.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+      gradR.addColorStop(0.5, "rgba(129, 140, 248, 0.04)");
       gradR.addColorStop(1, "transparent");
       ctx.fillStyle = gradR;
       ctx.fillRect(0, 0, width, height);
 
-      // (2) 左侧微弱平衡暗夜极光 (Deep Indigo / Emerald)
-      if (isDesktop) {
-        const gradL = ctx.createRadialGradient(width * 0.25, 230, 10, width * 0.25, 230, 280);
-        gradL.addColorStop(0, "rgba(14, 165, 233, 0.07)");
-        gradL.addColorStop(0.5, "rgba(99, 102, 241, 0.03)");
-        gradL.addColorStop(1, "transparent");
-        ctx.fillStyle = gradL;
-        ctx.fillRect(0, 0, width, height);
-      }
+      // (2) 左侧微弱平衡暗夜极光
+      const gradL = ctx.createRadialGradient(width * 0.2, height * 0.3, 10, width * 0.2, height * 0.3, 340);
+      gradL.addColorStop(0, "rgba(14, 165, 233, 0.08)");
+      gradL.addColorStop(0.5, "rgba(99, 102, 241, 0.03)");
+      gradL.addColorStop(1, "transparent");
+      ctx.fillStyle = gradL;
+      ctx.fillRect(0, 0, width, height);
 
       // 鼠标全屏流光互动
       if (mouse.active) {
-        const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 180);
-        mouseGlow.addColorStop(0, "rgba(56, 189, 248, 0.12)");
-        mouseGlow.addColorStop(0.5, "rgba(168, 85, 247, 0.03)");
+        const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
+        mouseGlow.addColorStop(0, "rgba(56, 189, 248, 0.1)");
+        mouseGlow.addColorStop(0.6, "rgba(168, 85, 247, 0.03)");
         mouseGlow.addColorStop(1, "transparent");
         ctx.fillStyle = mouseGlow;
         ctx.fillRect(0, 0, width, height);
       }
 
-      // 2. 渲染全屏粒子与图腾粒子
-      for (const p of particles) {
-        const waveFreq = p.isEmblem ? 0.03 : 0.015;
-        const waveAmp = p.isEmblem ? 1.4 : 0.7;
-        const waveX = Math.sin(time + p.originY * waveFreq) * waveAmp;
-        const waveY = Math.cos(time + p.originX * waveFreq) * waveAmp;
+      // 2. 渲染全屏环境微尘粒子
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
 
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const waveX = Math.sin(time + p.originY * 0.015) * 0.8;
+        const waveY = Math.cos(time + p.originX * 0.015) * 0.8;
 
         let targetX = p.originX + waveX;
         let targetY = p.originY + waveY;
         let currentAlpha = p.baseAlpha;
-        let currentTouch = 0;
 
-        if (mouse.active && dist < mouse.radius) {
-          const force = 1 - dist / mouse.radius;
-          const ripple = Math.sin(dist * 0.06 - time * 3) * (p.isEmblem ? 14 : 7) * force;
-          const angle = Math.atan2(dy, dx);
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-          targetX -= Math.cos(angle) * (ripple + force * (p.isEmblem ? 16 : 8));
-          targetY -= Math.sin(angle) * (ripple + force * (p.isEmblem ? 16 : 8));
-
-          currentAlpha = Math.min(1, p.baseAlpha + force * 0.45);
-          currentTouch = force;
+          if (dist < mouse.radius) {
+            const force = 1 - dist / mouse.radius;
+            const angle = Math.atan2(dy, dx);
+            targetX -= Math.cos(angle) * force * 12;
+            targetY -= Math.sin(angle) * force * 12;
+            currentAlpha = Math.min(0.6, p.baseAlpha + force * 0.35);
+          }
         }
 
-        p.touchForce += (currentTouch - p.touchForce) * 0.12;
-
-        p.vx = (p.vx + (targetX - p.x) * 0.1) * 0.82;
-        p.vy = (p.vy + (targetY - p.y) * 0.1) * 0.82;
+        p.vx = (p.vx + (targetX - p.x) * 0.1) * 0.85;
+        p.vy = (p.vy + (targetY - p.y) * 0.1) * 0.85;
         p.x += p.vx;
         p.y += p.vy;
 
-        if (p.isEmblem) {
-          if (p.touchForce > 0.08) {
-            const tf = p.touchForce;
-            const hue = 185 + tf * 130 + Math.sin(time * 2 + p.colorOffset) * 25;
-            const lightness = 65 + tf * 25;
-            ctx.fillStyle = `hsla(${hue}, 95%, ${lightness}%, ${currentAlpha})`;
-          } else {
-            const colorPulse = Math.sin(time + p.colorOffset);
-            if (colorPulse > 0.3) {
-              ctx.fillStyle = `rgba(186, 230, 253, ${currentAlpha})`;
-            } else if (colorPulse < -0.3) {
-              ctx.fillStyle = `rgba(199, 210, 254, ${currentAlpha})`;
-            } else {
-              ctx.fillStyle = `rgba(224, 242, 254, ${currentAlpha})`;
-            }
-          }
-        } else {
-          if (p.touchForce > 0.1) {
-            ctx.fillStyle = `rgba(56, 189, 248, ${Math.min(0.6, currentAlpha + 0.3)})`;
-          } else {
-            ctx.fillStyle = `rgba(148, 163, 184, ${currentAlpha})`;
-          }
-        }
-
+        ctx.fillStyle = `rgba(148, 163, 184, ${currentAlpha})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -293,9 +196,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
       isRunning = false;
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleMouseLeave);
+      window.removeEventListener("mouseleave", handleLeave);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
