@@ -1,4 +1,4 @@
-﻿import { Post } from "../types/blog";
+import { Post } from "../types/blog";
 
 export const postsData: Post[] = [
   {
@@ -11,8 +11,6 @@ export const postsData: Post[] = [
     tags: ["实战复盘", "Kotlin", "Python", "架构设计", "开源思考"],
     featured: true,
     content: `
-# 从痛点到双端落地：一个校园助手的工程实战与思考
-
 在大学校园里，教学与教务往往被割裂在多个独立的信息系统中：
 - **学习平台（TronClass / LNT）**：签到任务时效性极强，且课件往往分散在各个层级的章节树中；
 - **综合教务系统**：课表、成绩核算与期末考试安排分散在另一个入口，日常查询需要反复走统一身份认证。

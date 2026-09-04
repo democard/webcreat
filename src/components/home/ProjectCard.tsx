@@ -1,5 +1,5 @@
-﻿import React from "react";
-import { ExternalLink } from "lucide-react";
+import React from "react";
+import { ExternalLink, Star } from "lucide-react";
 import { Project } from "../../types/blog";
 
 interface ProjectCardProps {
@@ -41,11 +41,16 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           ))}
         </div>
 
-        {project.updatedAt && (
-          <span className="text-[10px] text-slate-500 shrink-0">
-            {project.updatedAt}
-          </span>
-        )}
+        <div className="flex items-center gap-2 text-[10px] text-slate-500 shrink-0">
+          {project.stars !== undefined && project.stars > 0 && (
+            <span className="flex items-center gap-1 text-amber-400">
+              <Star className="w-3 h-3 fill-amber-400" /> {project.stars}
+            </span>
+          )}
+          {project.updatedAt && (
+            <span>{project.updatedAt}</span>
+          )}
+        </div>
       </div>
     </div>
   );

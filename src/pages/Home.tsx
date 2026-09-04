@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { ArrowRight, Cpu, Binary } from "lucide-react";
 import { Post, Project } from "../types/blog";
 import { HomeHero } from "../components/home/HomeHero";
@@ -24,19 +24,20 @@ export const Home: React.FC<HomeProps> = ({
       {/* 1. Hero 区域 */}
       <HomeHero onNavigate={onNavigate} />
 
-      {/* 2. 开源工程 (LIVE REPOSITORIES) */}
+      {/* 2. 开源工程与仓库 */}
       <section className="space-y-4 pt-2">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="text-cyan-400 font-mono text-xs font-bold">[ 01 ]</span>
-            <h2 className="text-xs font-bold text-white uppercase tracking-widest font-mono flex items-center gap-1.5">
-              <span>工程与仓库 (LIVE REPOSITORIES)</span>
-              <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center justify-between pb-3 border-b border-white/10 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-cyan-400 font-mono text-xs font-bold whitespace-nowrap shrink-0">[ 01 ]</span>
+            <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 truncate">
+              <span>工程与仓库</span>
+              <span className="hidden sm:inline text-slate-500 font-normal">(LIVE REPOSITORIES)</span>
+              <Cpu className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             </h2>
           </div>
           <button
             onClick={() => onNavigate("projects")}
-            className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono"
+            className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono whitespace-nowrap shrink-0"
           >
             全部仓库 ({projects.length}) <ArrowRight className="w-3 h-3" />
           </button>
@@ -49,21 +50,22 @@ export const Home: React.FC<HomeProps> = ({
         </div>
       </section>
 
-      {/* 3. 算法思考与技术沉淀 (WRITINGS & LOGS) */}
+      {/* 3. 算法思考与技术笔记 */}
       <section className="space-y-4 pt-2">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="text-purple-400 font-mono text-xs font-bold">[ 02 ]</span>
-            <h2 className="text-xs font-bold text-white uppercase tracking-widest font-mono flex items-center gap-1.5">
-              <span>技术沉淀与研究 (WRITINGS &amp; LOGS)</span>
-              <Binary className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="flex items-center justify-between pb-3 border-b border-white/10 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-purple-400 font-mono text-xs font-bold whitespace-nowrap shrink-0">[ 02 ]</span>
+            <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 truncate">
+              <span>技术手记与沉淀</span>
+              <span className="hidden sm:inline text-slate-500 font-normal">(WRITINGS &amp; LOGS)</span>
+              <Binary className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
             </h2>
           </div>
           <button
             onClick={() => onNavigate("blog")}
-            className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono"
+            className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono whitespace-nowrap shrink-0"
           >
-            全部日志 <ArrowRight className="w-3 h-3" />
+            全部手记 <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 

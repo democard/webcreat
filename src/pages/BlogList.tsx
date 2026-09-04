@@ -1,5 +1,5 @@
-﻿import React, { useState, useMemo } from "react";
-import { Search, Tag, Calendar, Clock, ArrowRight } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Search, Calendar, Clock, Binary, ArrowRight } from "lucide-react";
 import { Post } from "../types/blog";
 
 interface BlogListProps {
@@ -29,38 +29,41 @@ export const BlogList: React.FC<BlogListProps> = ({ posts, onSelectPost }) => {
   }, [posts, selectedTag, searchQuery]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Header */}
-      <div className="space-y-3 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 font-sans">
-          文章归档 (Writings)
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          记录关于前端工程化、架构设计、开源实践与技术思考。共 {posts.length} 篇文章。
+    <div className="space-y-8 animate-in fade-in duration-200 max-w-4xl mx-auto">
+      {/* 头部标题与描述 */}
+      <div className="space-y-2 pb-4 border-b border-slate-800/80">
+        <div className="flex items-center gap-2">
+          <Binary className="w-5 h-5 text-indigo-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-white font-sans">
+            技术笔记与手记 (Writings &amp; Logs)
+          </h1>
+        </div>
+        <p className="text-xs font-mono text-slate-400">
+          记录关于算法研究、系统底层、工程实战与技术复盘。共 {posts.length} 篇沉淀。
         </p>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="space-y-4">
+      {/* 搜索与分类过滤 */}
+      <div className="space-y-3.5">
         <div className="relative">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="按标题或关键字搜索文章..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:border-cyan-500/50 transition-colors shadow-sm"
+            placeholder="按标题、关键字或摘要检索技术笔记..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 text-slate-100 text-xs font-mono rounded-xl border border-slate-800/80 focus:outline-none focus:border-cyan-500/50 transition-colors placeholder:text-slate-600 backdrop-blur-xl"
           />
         </div>
 
-        {/* Tag chips */}
-        <div className="flex flex-wrap items-center gap-1.5">
+        {/* 标签选择 */}
+        <div className="flex flex-wrap items-center gap-1.5 font-mono">
           <button
             onClick={() => setSelectedTag("all")}
-            className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+            className={`px-3 py-1 text-xs rounded-lg transition-all border ${
               selectedTag === "all"
-                ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold"
-                : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold"
+                : "bg-slate-950/40 text-slate-400 hover:text-slate-200 border-slate-800/80 hover:bg-slate-900/60"
             }`}
           >
             全部 ({posts.length})
@@ -69,10 +72,10 @@ export const BlogList: React.FC<BlogListProps> = ({ posts, onSelectPost }) => {
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2.5 py-1 text-xs rounded-lg transition-all border ${
                 selectedTag === tag
-                  ? "bg-cyan-600 text-white dark:bg-cyan-500 dark:text-black font-semibold"
-                  : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold"
+                  : "bg-slate-950/40 text-slate-400 hover:text-slate-200 border-slate-800/80 hover:bg-slate-900/60"
               }`}
             >
               #{tag}
@@ -81,45 +84,50 @@ export const BlogList: React.FC<BlogListProps> = ({ posts, onSelectPost }) => {
         </div>
       </div>
 
-      {/* Posts List */}
-      <div className="space-y-4">
+      {/* 文章列表 */}
+      <div className="space-y-3">
         {filteredPosts.length === 0 ? (
-          <div className="p-12 text-center text-xs text-zinc-500 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-            暂无匹配的文章，换个关键词试试？
+          <div className="p-12 text-center text-xs font-mono text-slate-500 bg-slate-950/20 rounded-2xl border border-slate-800/60">
+            未检索到匹配的技术笔记，换个关键词试试？
           </div>
         ) : (
           filteredPosts.map((post) => (
             <article
               key={post.id}
               onClick={() => onSelectPost(post)}
-              className="group p-5 rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/40 transition-all cursor-pointer shadow-sm hover:shadow-md space-y-3"
+              className="group relative p-6 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 bg-slate-950/20 hover:bg-slate-900/40 backdrop-blur-2xl transition-all duration-300 cursor-pointer space-y-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-500/5"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-500">
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                     {post.date}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
+                  <span>·</span>
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <Clock className="w-3.5 h-3.5 text-indigo-400" />
                     {post.readTime}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {post.tags.map((t) => (
-                    <span key={t} className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px]">
+                    <span
+                      key={t}
+                      className="px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 text-[10px]"
+                    >
                       #{t}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                {post.title}
+              <h2 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors font-sans flex items-center justify-between">
+                <span>{post.title}</span>
+                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
               </h2>
 
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-2">
+              <p className="text-xs text-slate-400 group-hover:text-slate-300 leading-relaxed transition-colors font-sans line-clamp-2">
                 {post.summary}
               </p>
             </article>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
 import { SearchModal } from "./components/common/SearchModal";
@@ -12,14 +12,53 @@ import { postsData } from "./data/posts";
 import { useGitHubProjects } from "./hooks/useGitHubProjects";
 import { Post, Project } from "./types/blog";
 
+const getRouteFromHash = (): { tab: string; postSlug?: string } => {
+  const hash = window.location.hash || "#/";
+  if (hash.startsWith("#/post/")) {
+    const slug = hash.slice(7);
+    return { tab: "post-detail", postSlug: decodeURIComponent(slug) };
+  }
+  if (hash === "#/blog") return { tab: "blog" };
+  if (hash === "#/projects") return { tab: "projects" };
+  if (hash === "#/about") return { tab: "about" };
+  return { tab: "home" };
+};
+
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>("home");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
-  // 全自动实时同步 GitHub 仓库
-  const { projects: autoProjects, loading: projectsLoading } = useGitHubProjects("democard");
+  // 全自动实时同步 GitHub 仓库 (带本地毫秒级缓存)
+  const { projects: autoProjects } = useGitHubProjects("democard");
+
+  // 路由同步：处理 Hash 变化与浏览器前进/后退
+  useEffect(() => {
+    const syncRoute = () => {
+      const route = getRouteFromHash();
+      if (route.tab === "post-detail" && route.postSlug) {
+        const found = postsData.find(
+          (p) => p.slug === route.postSlug || p.id === route.postSlug
+        );
+        if (found) {
+          setSelectedPost(found);
+          setCurrentTab("post-detail");
+        } else {
+          setCurrentTab("blog");
+          setSelectedPost(null);
+          window.location.hash = "#/blog";
+        }
+      } else {
+        setCurrentTab(route.tab);
+        setSelectedPost(null);
+      }
+    };
+
+    syncRoute();
+    window.addEventListener("hashchange", syncRoute);
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, []);
 
   useEffect(() => {
     if (isDark) {
@@ -32,11 +71,14 @@ export const App: React.FC = () => {
   const handleSelectPost = (post: Post) => {
     setSelectedPost(post);
     setCurrentTab("post-detail");
+    window.location.hash = `#/post/${post.slug || post.id}`;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSelectTab = (tab: string) => {
     setCurrentTab(tab);
     setSelectedPost(null);
+    window.location.hash = tab === "home" ? "#/" : `#/${tab}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -73,7 +115,7 @@ export const App: React.FC = () => {
         {currentTab === "post-detail" && selectedPost && (
           <PostDetail
             post={selectedPost}
-            onBack={() => setCurrentTab("blog")}
+            onBack={() => handleSelectTab("blog")}
           />
         )}
 
@@ -97,7 +139,7 @@ export const App: React.FC = () => {
         projects={autoProjects}
         onSelectPost={handleSelectPost}
         onSelectProject={() => {
-          setCurrentTab("projects");
+          handleSelectTab("projects");
         }}
       />
     </div>
