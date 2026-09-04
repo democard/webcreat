@@ -20,7 +20,7 @@ export const Home: React.FC<HomeProps> = ({
   onNavigate,
 }) => {
   return (
-    <div className="space-y-20 animate-in fade-in duration-300 max-w-4xl mx-auto">
+    <div className="space-y-20 animate-in fade-in duration-300 w-full mx-auto">
       {/* 1. Hero 区域 */}
       <HomeHero onNavigate={onNavigate} />
 

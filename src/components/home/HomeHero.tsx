@@ -20,7 +20,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4 sm:pt-8 relative z-10">
       {/* 左侧文字排版 */}
-      <div className="lg:col-span-7 space-y-6">
+      <div className="lg:col-span-6 space-y-6">
         {/* 状态徽章 */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 backdrop-blur-xl shadow-lg shadow-cyan-500/5">
           <span className="relative flex h-2 w-2">
@@ -87,7 +87,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
       </div>
 
       {/* 右侧：狼首微米流体图腾专属容器 (100% 容器内居中自适应，绝不溢出截断) */}
-      <div className="lg:col-span-5 flex items-center justify-center pt-2 lg:pt-0">
+      <div className="lg:col-span-6 flex items-center justify-center pt-2 lg:pt-0">
         <HeroEmblemCanvas />
       </div>
     </section>

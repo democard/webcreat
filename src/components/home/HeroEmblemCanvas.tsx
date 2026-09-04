@@ -54,7 +54,7 @@ export const HeroEmblemCanvas: React.FC = () => {
 
       const cx = width * 0.5;
       const cy = height * 0.505;
-      const scale = Math.min(width, height) * 0.52;
+      const scale = Math.min(width, height) * 0.54;
       mouse.radius = Math.min(width, height) * 0.35;
 
       particles = [];
@@ -62,7 +62,7 @@ export const HeroEmblemCanvas: React.FC = () => {
         const pt = emblemPoints[i];
         const px = cx + pt.nx * scale;
         const py = cy + pt.ny * scale;
-        const baseAlpha = Math.min(1, pt.brightness * 0.7 + 0.25);
+        const baseAlpha = Math.min(1, pt.brightness * 0.75 + 0.3);
 
         particles.push({
           originX: px,
@@ -71,7 +71,7 @@ export const HeroEmblemCanvas: React.FC = () => {
           y: py,
           vx: 0,
           vy: 0,
-          size: 1.65,
+          size: 1.85,
           alpha: baseAlpha,
           baseAlpha: baseAlpha,
           colorOffset: (pt.nx + pt.ny) * 2,
@@ -220,18 +220,11 @@ export const HeroEmblemCanvas: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] xl:max-w-[520px] aspect-square flex items-center justify-center cursor-pointer select-none"
+      className="relative w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[560px] xl:max-w-[600px] aspect-square flex items-center justify-center cursor-pointer select-none overflow-visible"
     >
-      {/* 柔和扩散的星际极光光晕：CSS 圆形全景径向模糊，绝无任何直角或画布边界裁剪 */}
-      <div
-        className="absolute inset-4 -z-10 rounded-full bg-gradient-to-tr from-cyan-500/10 via-sky-500/5 to-indigo-500/10 blur-3xl pointer-events-none transform-gpu animate-pulse"
-        style={{ animationDuration: "5s" }}
-      />
-      <div className="absolute inset-12 -z-10 rounded-full bg-cyan-400/5 blur-2xl pointer-events-none" />
-
       <canvas
         ref={canvasRef}
-        className="w-full h-full block"
+        className="w-full h-full block bg-transparent"
       />
     </div>
   );

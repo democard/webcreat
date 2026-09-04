@@ -29,7 +29,7 @@ export const BlogList: React.FC<BlogListProps> = ({ posts, onSelectPost }) => {
   }, [posts, selectedTag, searchQuery]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200 max-w-4xl mx-auto">
+    <div className="space-y-8 animate-in fade-in duration-200 w-full mx-auto">
       {/* 头部标题与描述 */}
       <div className="space-y-2 pb-4 border-b border-slate-800/80">
         <div className="flex items-center gap-2">
