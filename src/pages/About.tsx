@@ -1,7 +1,31 @@
 import React from "react";
-import { Mail, Github, Cpu, Binary, Code2, Terminal, Layers } from "lucide-react";
+import { Mail, Github, Cpu, Binary, Code2, Terminal, Layers, Milestone, Laptop, Heart } from "lucide-react";
 
 export const About: React.FC = () => {
+  const milestones = [
+    {
+      year: "2026",
+      title: "webcreat (democard.dev)",
+      desc: "构建个人数字化实验室与极客空间，自主实现 1800 粒子 Canvas 流体物理引擎与双核星云排版。",
+    },
+    {
+      year: "2026",
+      title: "xmu_assistant 双端助手",
+      desc: "开源跨 Windows (PySide6) 与 Android (Jetpack Compose) 校园助手，解构雷达定位三边测量几何算法与安全 DPAPI 本地凭据防护。",
+    },
+    {
+      year: "长期",
+      title: "算法沉淀与底层探索",
+      desc: "持续探索网络协议解构、几何计算、高可靠并发控制及现代化 Web 轻量化架构演进。",
+    },
+  ];
+
+  const tools = [
+    { category: "开发语言", items: ["Kotlin", "Python", "TypeScript", "C/C++", "SQL"] },
+    { category: "架构框架", items: ["Jetpack Compose", "PySide6 (Qt)", "React 18", "TailwindCSS"] },
+    { category: "工程环境", items: ["Android Studio", "VS Code", "PowerShell 7", "Git CLI", "Vite"] },
+  ];
+
   return (
     <div className="space-y-10 animate-in fade-in duration-200 max-w-2xl mx-auto">
       {/* 头部 */}
@@ -17,7 +41,7 @@ export const About: React.FC = () => {
         </p>
       </div>
 
-      {/* 核心介绍 */}
+      {/* 核心自述 */}
       <div className="space-y-6 text-sm text-slate-300 leading-relaxed font-sans">
         <p>
           你好，我是 <strong className="text-white font-semibold">democard</strong>。
@@ -34,7 +58,7 @@ export const About: React.FC = () => {
           </p>
         </div>
 
-        {/* 核心方向卡片 */}
+        {/* 核心关注方向 */}
         <div className="space-y-3 pt-2">
           <h2 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5 text-cyan-400" />
@@ -74,8 +98,59 @@ export const About: React.FC = () => {
           </div>
         </div>
 
+        {/* 工程足迹 (Milestones) */}
+        <div className="space-y-3 pt-2">
+          <h2 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Milestone className="w-3.5 h-3.5 text-indigo-400" />
+            <span>工程历程 (Milestones)</span>
+          </h2>
+
+          <div className="space-y-3 font-mono text-xs">
+            {milestones.map((m, idx) => (
+              <div
+                key={idx}
+                className="p-3.5 rounded-xl bg-slate-950/20 border border-slate-800/60 backdrop-blur-md flex items-start gap-3"
+              >
+                <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] shrink-0">
+                  {m.year}
+                </span>
+                <div className="space-y-1">
+                  <div className="font-semibold text-slate-200">{m.title}</div>
+                  <div className="text-[11px] text-slate-400 leading-relaxed font-sans">{m.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 常用工作台工具 (Tooling) */}
+        <div className="space-y-3 pt-2">
+          <h2 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Laptop className="w-3.5 h-3.5 text-emerald-400" />
+            <span>技术工具箱 (Toolbox)</span>
+          </h2>
+
+          <div className="p-4 rounded-xl bg-slate-950/20 border border-slate-800/60 space-y-3 font-mono text-xs">
+            {tools.map((group, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-slate-500 text-[11px] w-20 shrink-0">{group.category}：</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.items.map((item) => (
+                    <span
+                      key={item}
+                      className="px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/5 text-[10px]"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* 联系与社交 */}
-        <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center gap-4 text-xs font-mono">
+        <div className="pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-4 text-xs font-mono">
           <a
             href="https://github.com/democard"
             target="_blank"

@@ -30,10 +30,10 @@ export const App: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
-  // 全自动实时同步 GitHub 仓库 (带本地毫秒级缓存)
+  // 鍏ㄨ嚜鍔ㄥ疄鏃跺悓姝?GitHub 浠撳簱 (甯︽湰鍦版绉掔骇缂撳瓨)
   const { projects: autoProjects } = useGitHubProjects("democard");
 
-  // 路由同步：处理 Hash 变化与浏览器前进/后退
+  // 璺敱鍚屾锛氬鐞?Hash 鍙樺寲涓庢祻瑙堝櫒鍓嶈繘/鍚庨€€
   useEffect(() => {
     const syncRoute = () => {
       const route = getRouteFromHash();
@@ -84,7 +84,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0f17] text-slate-200 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 relative overflow-x-hidden">
-      {/* 极简深空水墨图腾波纹画布 */}
+      {/* 鏋佺畝娣辩┖姘村ⅷ鍥捐吘娉㈢汗鐢诲竷 */}
       <DeepSeekWaveCanvas />
 
       {/* Navbar */}
