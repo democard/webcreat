@@ -1,12 +1,9 @@
 import React from "react";
 import { Github, BookOpen, Mail } from "lucide-react";
 import { HeroEmblemCanvas } from "./HeroEmblemCanvas";
+import { InternalLink } from "../common/InternalLink";
 
-interface HomeHeroProps {
-  onNavigate: (tab: string) => void;
-}
-
-export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
+export const HomeHero: React.FC = () => {
   const techPills = [
     { name: "Kotlin", color: "hover:border-purple-500/50 hover:text-purple-300" },
     { name: "Jetpack Compose", color: "hover:border-emerald-500/50 hover:text-emerald-300" },
@@ -42,7 +39,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
         </div>
 
         {/* 自述 */}
-        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+        <p className="text-base text-slate-300 leading-7 font-sans">
           这里是 <strong>democard</strong> 的技术空间。专注于算法研究、系统底层设计与现代 Web 架构。不写空话，只记录真实的工程实践、性能调优与技术沉淀。
         </p>
 
@@ -69,13 +66,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onNavigate }) => {
             <Github className="w-4 h-4" />
             <span>GitHub Profile</span>
           </a>
-          <button
-            onClick={() => onNavigate("blog")}
+          <InternalLink to={{ tab: "blog" }}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] text-slate-200 hover:text-white border border-white/10 hover:border-cyan-400/50 transition-all backdrop-blur-xl hover:-translate-y-0.5 font-medium"
           >
             <BookOpen className="w-4 h-4 text-cyan-400" />
             <span>技术手记</span>
-          </button>
+          </InternalLink>
           <a
             href="mailto:democard666@gmail.com"
             className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-white border border-white/5 hover:border-white/20 transition-all backdrop-blur-md"

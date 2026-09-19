@@ -1,155 +1,124 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Search, X, BookOpen, Cpu, ArrowRight } from "lucide-react";
 import { Post, Project } from "../../types/blog";
+import { loadSearchIndex } from "../../lib/content";
+import { rankPosts, searchExcerpt, searchTerms } from "../../lib/search";
+import { SearchHighlight } from "./SearchHighlight";
 
 interface SearchModalProps {
-  isOpen: boolean;
   onClose: () => void;
   posts: Post[];
   projects: Project[];
   onSelectPost: (post: Post) => void;
-  onSelectProject: (proj: Project) => void;
+  onSelectProject: (project: Project) => void;
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({
-  isOpen,
-  onClose,
-  posts,
-  projects,
-  onSelectPost,
-  onSelectProject,
+  onClose, posts, projects, onSelectPost, onSelectProject,
 }) => {
   const [query, setQuery] = useState("");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef(true);
+  const [fullText, setFullText] = useState(new Map<string, string>());
+  const [indexStatus, setIndexStatus] = useState("loading");
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        if (isOpen) onClose();
-      }
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
+    let active = true;
+    loadSearchIndex().then((index) => { if (active) { setFullText(index); setIndexStatus("ready"); } })
+      .catch(() => { if (active) setIndexStatus("error"); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    dialog?.showModal();
+    inputRef.current?.focus();
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+      if (restoreFocus.current) trigger?.focus();
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, []);
 
-  if (!isOpen) return null;
+  const q = query.toLocaleLowerCase().trim();
+  const matches = (values: string[]) => searchTerms(q).every((term) => values.some((value) => value.toLocaleLowerCase().includes(term)));
+  const matchedPosts = rankPosts(posts, q, fullText);
+  const matchedProjects = projects.filter((project) => matches([project.title, project.description, ...project.tags]));
 
-  const q = query.toLowerCase().trim();
-  const matchedPosts = posts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.summary.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q))
-  );
-
-  const matchedProjects = projects.filter(
-    (p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q))
-  );
+  const handleKeys = (event: React.KeyboardEvent) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Tab") {
+      const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('input, button:not([disabled]), a[href], [tabindex="0"]') || []);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      return;
+    }
+    const results = Array.from(resultsRef.current?.querySelectorAll<HTMLButtonElement>("[data-search-result]") || []);
+    const current = results.indexOf(document.activeElement as HTMLButtonElement);
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const next = current < 0 ? (event.key === "ArrowDown" ? 0 : results.length - 1)
+        : event.key === "ArrowDown" ? current + 1 : current - 1;
+      if (results.length) results[(next + results.length) % results.length].focus();
+    } else if (event.key === "Enter" && event.target === inputRef.current && results.length) {
+      event.preventDefault();
+      results[0].click();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-slate-950/95 border border-slate-800/90 rounded-2xl shadow-2xl shadow-cyan-950/20 overflow-hidden flex flex-col backdrop-blur-2xl">
-        {/* 搜索输入框 */}
-        <div className="flex items-center px-4 py-3.5 border-b border-slate-800/80 gap-3">
-          <Search className="w-4 h-4 text-cyan-400 shrink-0" />
-          <input
-            type="text"
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索技术手记、开源仓库或标签..."
-            className="flex-1 bg-transparent text-slate-100 text-sm outline-none placeholder:text-slate-500 font-sans"
-          />
-          <kbd className="px-2 py-0.5 text-[10px] bg-slate-900 text-slate-400 rounded border border-slate-800 font-mono">
-            ESC
-          </kbd>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            <X className="w-4 h-4" />
+    <dialog
+      ref={dialogRef}
+      aria-label="全局搜索"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      onKeyDown={handleKeys}
+      className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/75 p-4 pt-16 sm:pt-20 text-slate-200 backdrop-blur-md"
+    >
+      <div className="mx-auto flex max-h-[calc(100dvh-6rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-800/90 bg-slate-950 shadow-2xl shadow-cyan-950/20">
+        <div className="flex items-center gap-3 border-b border-slate-800/80 px-4 py-3.5">
+          <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-cyan-400" />
+          <input ref={inputRef} type="search" aria-label="搜索文章、项目或标签" maxLength={120}
+            value={query} onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索标题、正文、标签或项目…"
+            className="min-w-0 flex-1 bg-transparent text-base text-slate-100 outline-none placeholder:text-slate-500" />
+          <button onClick={onClose} aria-label="关闭搜索" className="rounded-lg p-2 text-slate-400 hover:text-white">
+            <X className="h-4 w-4" />
           </button>
         </div>
-
-        {/* 检索结果列表 */}
-        <div className="max-h-96 overflow-y-auto p-3 space-y-4">
-          {/* 文章 */}
-          {matchedPosts.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider px-2 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                <span>技术手记 ({matchedPosts.length})</span>
-              </div>
-              <div className="space-y-1">
-                {matchedPosts.map((post) => (
-                  <button
-                    key={post.id}
-                    onClick={() => {
-                      onSelectPost(post);
-                      onClose();
-                    }}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-900/70 border border-transparent hover:border-cyan-500/30 transition-all text-left group"
-                  >
-                    <div>
-                      <div className="text-xs font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors">
-                        {post.title}
-                      </div>
-                      <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 font-sans">
-                        {post.summary}
-                      </div>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 开源仓库 */}
-          {matchedProjects.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider px-2 flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-                <span>工程与仓库 ({matchedProjects.length})</span>
-              </div>
-              <div className="space-y-1">
-                {matchedProjects.map((proj) => (
-                  <button
-                    key={proj.id}
-                    onClick={() => {
-                      onSelectProject(proj);
-                      onClose();
-                    }}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-900/70 border border-transparent hover:border-indigo-500/30 transition-all text-left group"
-                  >
-                    <div>
-                      <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">
-                        {proj.title}
-                      </div>
-                      <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 font-sans">
-                        {proj.description}
-                      </div>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {matchedPosts.length === 0 && matchedProjects.length === 0 && (
-            <div className="p-8 text-center text-xs font-mono text-slate-500">
-              未检索到与 "{query}" 匹配的内容
-            </div>
-          )}
+        <p className="px-4 pt-3 text-xs text-slate-500" role="status">{matchedPosts.length + matchedProjects.length} 条结果{indexStatus === "loading" ? " · 正在加载正文索引…" : indexStatus === "error" ? " · 正文索引暂不可用，仍可搜索标题和标签" : " · 支持全文检索"}</p>
+        <div ref={resultsRef} className="space-y-4 overflow-y-auto p-3">
+          {matchedPosts.length > 0 && <section className="space-y-2" aria-label="文章搜索结果">
+            <h2 className="flex items-center gap-2 px-2 text-sm text-slate-400"><BookOpen className="h-4 w-4 text-cyan-400" />技术手记 ({matchedPosts.length})</h2>
+            {matchedPosts.map((post) => <button key={post.id} data-search-result
+              onClick={() => { restoreFocus.current = false; onSelectPost(post); onClose(); }}
+              className="group flex w-full items-center justify-between rounded-xl border border-transparent p-3 text-left hover:border-cyan-500/30 hover:bg-slate-900/70 focus-visible:bg-slate-900">
+              <span className="min-w-0"><span className="block text-sm font-semibold text-slate-200 group-hover:text-cyan-300"><SearchHighlight text={post.title} query={q} /></span>
+                <span className="mt-1 block line-clamp-2 text-sm text-slate-400"><SearchHighlight text={searchExcerpt(fullText.get(post.slug) || "", q, post.summary)} query={q} /></span></span>
+              <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-slate-500" />
+            </button>)}
+          </section>}
+          {matchedProjects.length > 0 && <section className="space-y-2" aria-label="项目搜索结果">
+            <h2 className="flex items-center gap-2 px-2 text-sm text-slate-400"><Cpu className="h-4 w-4 text-indigo-400" />工程与仓库 ({matchedProjects.length})</h2>
+            {matchedProjects.map((project) => <button key={project.id} data-search-result
+              onClick={() => { if (!project.githubUrl) restoreFocus.current = false; onSelectProject(project); onClose(); }}
+              className="group flex w-full items-center justify-between rounded-xl border border-transparent p-3 text-left hover:border-indigo-500/30 hover:bg-slate-900/70 focus-visible:bg-slate-900">
+              <span className="min-w-0"><span className="block text-sm font-semibold text-slate-200 group-hover:text-indigo-300">{project.title}</span>
+                <span className="mt-1 block line-clamp-1 text-xs text-slate-400">{project.description}</span></span>
+              <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-slate-500" />
+            </button>)}
+          </section>}
+          {!matchedPosts.length && !matchedProjects.length && <p className="p-8 text-center text-sm text-slate-400">未检索到与“{query}”匹配的内容，试试其他关键词。</p>}
         </div>
+        <p className="border-t border-slate-800 px-4 py-3 text-xs text-slate-500">↑ ↓ 选择 · Enter 打开 · Esc 关闭</p>
       </div>
-    </div>
+    </dialog>
   );
 };

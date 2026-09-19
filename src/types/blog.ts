@@ -7,8 +7,12 @@
   readTime: string;
   tags: string[];
   featured?: boolean;
-  content: string;
+  updated?: string;
+  readingMinutes?: number;
 }
+
+export interface Heading { id: string; text: string; level: number }
+export interface ArticleBody { slug: string; html: string; headings: Heading[] }
 
 export interface Project {
   id: string;

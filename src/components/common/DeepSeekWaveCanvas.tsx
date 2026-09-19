@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { createCanvasAnimation } from "../../lib/canvasAnimation";
 
 export const DeepSeekWaveCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -9,8 +10,6 @@ export const DeepSeekWaveCanvas: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
-    let isRunning = true;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -83,6 +82,7 @@ export const DeepSeekWaveCanvas: React.FC = () => {
     const handleResize = () => {
       updateCanvasSize();
       initParticles();
+      animation.invalidate();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -95,29 +95,12 @@ export const DeepSeekWaveCanvas: React.FC = () => {
       mouse.active = false;
     };
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        isRunning = false;
-        cancelAnimationFrame(animationFrameId);
-      } else {
-        if (!isRunning) {
-          isRunning = true;
-          animationFrameId = requestAnimationFrame(render);
-        }
-      }
-    };
-
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseleave", handleLeave);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    let time = 0;
-
-    const render = () => {
-      if (!isRunning) return;
-
-      time += 0.01;
+    const render = (elapsed: number) => {
+      const time = elapsed * 0.6;
 
       mouse.x += (mouse.targetX - mouse.x) * 0.08;
       mouse.y += (mouse.targetY - mouse.y) * 0.08;
@@ -187,24 +170,22 @@ export const DeepSeekWaveCanvas: React.FC = () => {
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    const animation = createCanvasAnimation(render);
 
     return () => {
-      isRunning = false;
+      animation.dispose();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleLeave);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       className="fixed inset-0 pointer-events-none z-0"
     />
   );

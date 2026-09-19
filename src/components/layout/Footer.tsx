@@ -1,5 +1,6 @@
 import React from "react";
-import { Github, Mail, Heart } from "lucide-react";
+import { Github, Mail, Heart, Rss } from "lucide-react";
+import { assetUrl } from "../../config/site";
 
 export const Footer: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono">
+          <a href={assetUrl("feed.xml")} className="flex items-center gap-1 text-slate-400 hover:text-cyan-300" aria-label="订阅 RSS"><Rss className="h-3.5 w-3.5" /> RSS</a>
           <a
             href="https://github.com/democard/webcreat"
             target="_blank"

@@ -1,57 +1,24 @@
 import React from "react";
-import { ExternalLink, Star } from "lucide-react";
+import { ArrowUpRight, Star, GitFork, Globe } from "lucide-react";
 import { Project } from "../../types/blog";
 
-interface ProjectCardProps {
-  project: Project;
-}
-
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-  return (
-    <div
-      onClick={() => {
-        if (project.githubUrl) window.open(project.githubUrl, "_blank");
-      }}
-      className="group relative p-6 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 bg-slate-950/20 hover:bg-slate-900/40 backdrop-blur-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/5"
-    >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/0 group-hover:bg-cyan-500/10 rounded-full blur-2xl transition-all duration-300 pointer-events-none" />
-
-      <div className="space-y-2 relative z-10">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-slate-100 group-hover:text-cyan-300 transition-colors font-mono flex items-center gap-2">
-            <span className="text-cyan-400 group-hover:translate-x-0.5 transition-transform">❯</span>
-            {project.title}
-          </span>
-          <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-cyan-300 transition-colors" />
-        </div>
-        <p className="text-xs text-slate-400 group-hover:text-slate-300 leading-relaxed transition-colors line-clamp-2">
-          {project.description}
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between pt-3 border-t border-slate-800/60 relative z-10 text-[11px] font-mono text-slate-500">
-        <div className="flex flex-wrap gap-1.5">
-          {project.tags.map((t) => (
-            <span
-              key={t}
-              className="text-[10px] px-2 py-0.5 rounded bg-white/5 group-hover:bg-cyan-950/40 text-slate-400 group-hover:text-cyan-300 border border-white/5 group-hover:border-cyan-500/30 transition-colors"
-            >
-              #{t}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 text-[10px] text-slate-500 shrink-0">
-          {project.stars !== undefined && project.stars > 0 && (
-            <span className="flex items-center gap-1 text-amber-400">
-              <Star className="w-3 h-3 fill-amber-400" /> {project.stars}
-            </span>
-          )}
-          {project.updatedAt && (
-            <span>{project.updatedAt}</span>
-          )}
-        </div>
-      </div>
+export const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
+  <article className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-slate-800 bg-slate-950/35 p-6 transition-colors hover:border-cyan-400/40 hover:bg-slate-900/40 focus-within:border-cyan-400/50">
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <h3 className="min-w-0 break-words font-mono text-base font-semibold leading-7 text-slate-100 group-hover:text-cyan-200">
+        {project.githubUrl ? <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="after:absolute after:inset-0 after:z-10 after:rounded-2xl" aria-label={`在 GitHub 查看 ${project.title}`}>{project.title}</a> : project.title}
+      </h3>
+      <ArrowUpRight aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-slate-500 group-hover:text-cyan-300" />
     </div>
-  );
-};
+    <p className="mb-5 line-clamp-3 text-sm leading-6 text-slate-400">{project.description}</p>
+    <div className="mb-5 flex flex-wrap gap-2">{project.tags.map((tag) => <span key={tag} className="rounded-md bg-slate-800/50 px-2 py-1 text-xs text-slate-400">{tag}</span>)}</div>
+    <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 pt-4 text-xs text-slate-400">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center gap-1" aria-label={`${project.stars || 0} 个星标`}><Star className="h-3.5 w-3.5 text-amber-300/80" />{project.stars || 0}</span>
+        {project.forks !== undefined && <span className="inline-flex items-center gap-1" aria-label={`${project.forks} 次 Fork`}><GitFork className="h-3.5 w-3.5" />{project.forks}</span>}
+        {project.demoUrl && <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="relative z-20 inline-flex items-center gap-1 text-cyan-300 hover:underline"><Globe className="h-3.5 w-3.5" />演示</a>}
+      </div>
+      {project.updatedAt && <time dateTime={project.updatedAt}>{project.updatedAt}</time>}
+    </div>
+  </article>
+);

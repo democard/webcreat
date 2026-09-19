@@ -1,160 +1,70 @@
-﻿# 📋 democard.dev (webcreat) 完整项目交接与上下文指南
-> **文档用途**：本指南专为后续接手的 **AI 助手（如 Claude / ChatGPT / Cursor 等）** 或 **开发人员** 编写。阅读本文档即可 100% 掌握本项目的全貌架构、核心视觉算法、关键代码位置、历史避坑经验及未来规划，零门槛无缝续写与迭代。
+# democard.dev 项目交接
 
----
+最近复验：2026-09-19。源码和当前验收结果是事实依据。
 
-## 1. 📌 项目基本概览 (Project Overview)
+## 项目定位
 
-- **项目名称**：`webcreat`（线上品牌：`democard.dev`）
-- **项目定位**：极简、现代、高性能的暗黑极客风格个人博客、开源作品集与技术实验室。
-- **开源仓库**：[https://github.com/democard/webcreat](https://github.com/democard/webcreat)
-- **在线演示地址**：[https://democard.github.io/webcreat/](https://democard.github.io/webcreat/)
-- **所有者 / 作者**：[@democard](https://github.com/democard)（联系邮箱：`democard666@gmail.com`）
-- **系统环境**：Windows 11（PowerShell 终端环境，注意避免使用 Linux 专有语法如 `&&` 连接命令，应使用 `;`）。
+个人技术博客与开源作品集，工作目录 D:/webcreat。保留 React 18 / TypeScript / Vite / Tailwind 和 GitHub Pages；透明狼首、星尘背景与暗色视觉延续原设计。
 
----
+本轮引入构建时内容处理与页面预渲染：静态托管即可提供完整正文、独立文章地址和元数据，浏览器加载后增强搜索、复制、筛选、动态项目及画布。
 
-## 2. 🛠️ 核心技术栈与配置 (Tech Stack & Architecture)
+## 内容和构建
 
-| 层次 | 技术选型 | 版本 | 关键说明 |
-| :--- | :--- | :--- | :--- |
-| **前端框架** | React | `^18.3.1` | 函数式组件，全面 Hooks 驱动 |
-| **语言规范** | TypeScript | `~5.7.2` | 严谨的接口与类型声明 (`types/blog.ts`) |
-| **构建与开发**| Vite | `^6.1.0` | 极速冷启动，`base: "./"` 适配 GitHub Pages 相对路径 |
-| **样式系统** | TailwindCSS | `^3.4.17` | 搭配 `@tailwindcss/typography` 深度定制暗黑 Prose 排版 |
-| **图标体系** | Lucide React | `^0.475.0` | 统一的线性矢量科技感图标 |
-| **内容解析** | Marked | `^18.0.11` | Markdown 转换 HTML，搭配定制代码高亮与样式渲染 |
-| **CI / CD** | GitHub Actions | 自定义 Workflow | 推送 `main` 分支全自动 `npm run build` 并部署至 GitHub Pages |
+1. src/content/posts/*.md 保存正文和 YAML 元数据。
+2. scripts/content.ts 验证字段、日期、slug/id 唯一性，排除草稿，使用 Marked、DOMPurify、highlight.js 与 JSDOM 生成安全 HTML、目录、阅读时长和全文索引。
+3. src/generated/index.json 保存文章元数据；posts/*.json 保存正文；search.json 保存全文。均为忽略提交的生成产物。
+4. src/data/posts.ts 导出元数据；src/lib/content.ts 按需加载正文和搜索索引。
+5. Vite 构建浏览器资源；scripts/prerender.ts 通过 src/entry-server.tsx 渲染 8 个静态页面，并生成 feed.xml、sitemap.xml、.nojekyll。
+6. scripts/check-build.ts 检查静态标题、元数据、结构化数据、内部链接/资源、文章内容、目录、404 和订阅文件。
 
----
+浏览器不再承担 Markdown 解析、安全清理和代码高亮。直接访问文章时，main.tsx 复用静态正文并加载阅读组件后 hydrateRoot；客户端跳转按需加载正文。解析器仍是构建和测试依赖，不能随意删除。
 
-## 3. 📂 项目目录结构剖析 (Directory Structure)
+开发服务监听 Markdown 变更，重新生成内容；无效内容显示错误。不要并行启动会写入 src/generated 的命令。
 
-```text
-D:\webcreat\
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # GitHub Actions 自动化部署配置（pages 环境）
-├── public/
-│   ├── emblem.svg              # 狼首矢量标志（用于 Navbar 与 Favicon）
-│   └── logo.png                # 品牌 Logo 图标
-├── src/
-│   ├── components/
-│   │   ├── common/
-│   │   │   ├── DeepSeekWaveCanvas.tsx  # 全局星空三维流动波浪粒子画布（全屏背景）
-│   │   │   └── SearchModal.tsx         # 全局 Cmd+K / Ctrl+K 弹窗搜索组件
-│   │   ├── home/
-│   │   │   ├── HeroEmblemCanvas.tsx    # 核心视觉：1807 粒子狼首图腾交互 Canvas
-│   │   │   ├── HomeHero.tsx            # 首页主屏布局（6:6 左右等分栅格）
-│   │   │   ├── PostItem.tsx            # 首页精选文章卡片条目
-│   │   │   └── ProjectCard.tsx         # 首页与项目页的仓库展示卡片
-│   │   └── layout/
-│   │       ├── Navbar.tsx              # 吸顶毛玻璃导航栏，支持全局搜索与标签切换
-│   │       └── Footer.tsx              # 统一底部栏，包含开源信息与版权
-│   ├── data/
-│   │   ├── emblemPoints.ts     # 核心数据：高精度采样生成的 1807 组狼首粒子坐标
-│   │   ├── posts.ts            # 本地博客文章源数据（支持完整 Markdown）
-│   │   └── projects.ts         # 本地兜底开源项目数据
-│   ├── hooks/
-│   │   └── useGitHubProjects.ts# 自动拉取 GitHub API 实时同步仓库 Stars 与语言标签
-│   ├── pages/
-│   │   ├── Home.tsx            # 首页（Hero + 开源项目 + 精选文章）
-│   │   ├── BlogList.tsx        # 博客列表页（分类筛选 + 实时检索）
-│   │   ├── PostDetail.tsx      # 文章详情页（Markdown 渲染 + 目录导航 + 代码复制）
-│   │   ├── Projects.tsx        # 开源工程展厅（分类筛选 + 实时动态星标）
-│   │   └── About.tsx           # 关于作者页（个人履历 + 技能树 + 社交方式）
-│   ├── types/
-│   │   └── blog.ts             # 核心数据模型定义 (Post, Project, Tag, Category)
-│   ├── App.tsx                 # 单页轻量状态路由调度中枢与主题控制
-│   ├── index.css               # Tailwind 指令与全局暗黑 Prose / 自定义滚动条样式
-│   └── main.tsx                # 应用渲染入口
-├── package.json                # 项目依赖及 scripts 命令
-├── vite.config.ts              # Vite 配置文件 (base: "./", port: 5173)
-└── README.md                   # 面向 GitHub 访客的项目自述文件
-```
+## 路由与元数据
 
----
+统一配置在 src/config/site.ts，当前地址 https://democard.github.io/webcreat/，对应资源前缀 /webcreat/。
 
-## 4. 🎨 核心视觉与特殊实现机制 (Key Visual Systems)
+- 首页：/webcreat/
+- 文章列表：/webcreat/blog/
+- 项目：/webcreat/projects/
+- 关于：/webcreat/about/
+- 文章：/webcreat/posts/<slug>/
 
-### 4.1 🐺 狼首微米流体图腾 (`HeroEmblemCanvas.tsx` & `emblemPoints.ts`)
-这是整站最核心、最具辨识度的视觉符号：
-1. **数据源**：`emblemPoints.ts` 导出了 1,807 个高密度归一化采样点 `{ nx, ny, brightness }`。
-   - 坐标范围：X `[-0.654, 0.616]`，Y `[-0.866, 0.807]`。
-2. **绘制原理**：
-   - 使用 HTML5 Canvas 2D 逐帧动画渲染。
-   - 支持 DPR 屏幕物理像素高清适配 (`Math.min(window.devicePixelRatio || 1, 2)`)。
-   - 图腾粒子半径设置为 `1.85px`，带有简谐微流动呼吸波（`Math.sin` & `Math.cos`）。
-3. **物理交互**：
-   - 鼠标接近粒子群时，触发距离反比斥力与波纹扰动（`ripple` 物理冲击）。
-   - 粒子根据受力强度（`touchForce`）动态在青色（Cyan 185°）与霓虹紫（Purple）之间做 HSL 流光变换。
-4. **【极度重要】纯透明 Canvas 规则**：
-   - **Canvas 内部严禁使用 `fillRect` 填充任何背景或渐变光晕！** 必须保持 `ctx.clearRect(0, 0, width, height)` 纯透明，只绘制粒子弧线 `ctx.arc()`。
-   - 这样粒子才能完美“悬浮”于全屏星空画布上，绝对不会出现 90° 直角方框或阴影剪裁。
+src/lib/routes.ts 解析路径、提供导航与链接，继续识别旧 #/ 路由和文章 id。App 启动后把历史 id 解析为 canonical slug，再将旧链接 replaceState 为可刷新的新路径。普通章节 #article-section-* 保留目录含义，目录点击同步更新章节锚点。真实锚链接支持无 JavaScript 导航和新标签页；客户端通过 pushState、popstate 与 app:navigate 同步。
 
-### 4.2 🌌 全屏星海粒子波浪 (`DeepSeekWaveCanvas.tsx`)
-- 作为 `fixed inset-0 pointer-events-none -z-10` 的全屏底层背景。
-- 采用双层动态波浪网格算法，模拟类似 DeepSeek 官网的流动科技星尘，随时间轴缓缓起伏。
+src/lib/metadata.ts 统一标题、描述、canonical、Open Graph、Twitter 和文章 JSON-LD；静态构建与客户端导航复用。404 使用 noindex。分享图复用现有 logo.png；第三方平台的实际卡片展示尚未实测。
 
-### 4.3 🔄 路由与状态体系 (`App.tsx`)
-- 采用轻量且稳定的 Tab 状态管理，非 History API 路由，彻底规避 GitHub Pages 单页刷新 404 问题：
-  `currentTab: "home" | "blog" | "post-detail" | "projects" | "about"`
-- 全站宽度统一采用 `max-w-5xl` 容器标准，既保证了大屏上的大气舒展，又防止超宽屏阅读疲劳。
+目前的静态页面数是 8，随已发布文章数量变化。更换域名或子路径需要重建；浏览器验收从构建首页读取对应服务前缀。
 
----
+## 搜索、阅读和列表
 
-## 5. ⚠️ 历史踩坑与必须遵守的避坑铁律 (Critical Lessons & Fixes)
+全局 SearchModal 使用原生 dialog。打开后才加载全文索引；标题、标签、摘要、正文参与排序，支持多词匹配、摘要片段、关键词高亮和键盘选择。索引加载失败时仍能搜索元数据。关闭弹窗恢复焦点和页面滚动。
 
-接手的 AI 请**务必阅读本章节**，不要重蹈历史修改的覆辙：
+PostDetail 提供桌面侧栏目录、手机折叠目录、阅读进度、章节焦点定位、复制/分享、相邻文章和加载重试。代码语言支持范围由 src/lib/markdown.ts 的显式导入决定；未知语言安全显示为纯文本。正文 16px，表格和代码块允许横向滚动，整页不应溢出。
 
-1. **避免方形边界 / 边框截断问题**：
-   - *曾经的 Bug*：原代码在 Canvas 内部调用了 `ctx.createRadialGradient` 并用 `ctx.fillRect(0, 0, width, height)` 填充，导致光晕在 Canvas 边缘被硬生生切出一条矩形边框。
-   - *铁律*：**绝对不要在 `HeroEmblemCanvas` 中画任何矩形背景**！
-2. **避免宽度缩限（图腾变小）问题**：
-   - *曾经的 Bug*：`Home.tsx` 顶层曾包裹了一个 `max-w-4xl (896px)` 的限制，同时 Hero 采用 `7:5` 分栏，导致右侧图腾最大只能渲染到 340px。
-   - *当前架构*：Hero 必须保持 `lg:col-span-6` 左右各 50% 等分，且图腾映射 scale 设定为 `0.54`，图腾能够自由撑满 500px~600px 宽度。
-3. **GitHub Actions 部署延迟特性**：
-   - 项目在推送（`git push origin main`）后，GitHub Actions 耗时约为 **1 ~ 3 分钟**（在 Actions 标签页可见 `Deploy to GitHub Pages`）。
-   - 部署完毕后，用户或测试者需要使用 **`Ctrl + F5` 强制硬刷新**（或无痕模式）以清除浏览器旧静态资源强缓存。
-4. **Windows 环境下的 Git / Shell 命令**：
-   - 用户在 Windows PowerShell 环境下运行命令，不支持 `&&`，请使用分号 `;`（如 `git add -A; git commit -m "..."; git push origin main`）。
+BlogList 支持文本与标签筛选，状态写入查询参数并可刷新恢复；提供 RSS 入口。Projects 提供文本、项目类型和排序筛选、空状态及主动刷新。共用 ProjectCard 使用独立仓库/演示链接，避免嵌套锚点。
 
----
+## GitHub 数据
 
-## 6. 💻 开发与维护常用命令 (Commands)
+读取最近 30 个公开仓库并过滤 fork。先显示仓库字段，再以最多 4 个并发请求补充根目录 README.md；使用 API 返回的 default_branch。
 
-```powershell
-# 1. 启动本地开发服务 (默认端口 5173)
-npm run dev
+每个请求含响应体读取最长 8 秒，卸载时中止。缓存按用户名隔离，有效期 30 分钟；有效空列表也缓存。过期缓存可在网络失败时继续显示，localStorage 不可用和损坏缓存安全降级。手动刷新绕过有效缓存。
 
-# 2. 本地生产打包与 TypeScript 类型检查
-npm run build
+SSR 与客户端首次渲染都使用预置项目，挂载后应用缓存/网络结果以保持一致。项目页显示加载和数据来源。其他 README 文件名/位置使用仓库原始描述回退。
 
-# 3. 本地预览打包产物
-npm run preview
+## 视觉与动画
 
-# 4. 提交代码并触发全自动线上部署
-git add -A; git commit -m "feat/fix: 说明你的改动"; git push origin main
+狼首保持 clearRect 透明，禁止 fillRect 背景。1,807 个采样点、粒子半径 1.85、scale 0.54、Hero 6:6 栅格不变。ResizeObserver 响应容器变化，触摸结束/取消复位。
 
-# 5. 检查 GitHub Actions 部署状态 (需要 gh cli)
-gh run list --limit 3
-```
+两张画布在页面后台暂停，狼首屏外暂停；遵循 prefers-reduced-motion。关闭 JavaScript 时显示静态图腾。提高灰色小字对比度，统一项目卡片、文章列表、搜索与阅读页间距。
 
----
+## 验证与发布
 
-## 7. 🚀 后续可接续优化与规划建议 (Roadmap for Next AI)
+本轮 7 个文件中的 38 项行为测试、生产构建与 8 页静态校验、12 组 Chromium 浏览器验收通过。浏览器覆盖 1440×1000 桌面和 390×844 手机模拟视口；检查页面溢出、搜索焦点、刷新、旧链接、目录、复制、筛选、404、无 JavaScript 列表与阅读及 React 运行时错误。
 
-后续接手的 AI 可在以下方向继续协助用户深化与迭代：
+6 个页面/弹窗状态通过所选 axe 规则检查。不是完整无障碍认证，也未覆盖实体手机、Safari/Firefox、真实慢网性能或第三方分享卡片。
 
-1. **文章系统进阶**：
-   - 目前文章硬编码在 `src/data/posts.ts` 中。可利用 Vite 的 `import.meta.glob('/src/content/posts/*.md', { as: 'raw' })` 改为读取真实的 `.md` 独立文件，实现更自然的本地写作。
-2. **代码阅读器增强 (`PostDetail.tsx`)**：
-   - 增加代码块一键复制按钮反馈提示。
-   - 为代码块引入 Prism.js 或 highlight.js 的精细语法高亮支持。
-3. **移动端手势与触控调优**：
-   - 针对移动端屏幕尺寸，优化狼首图腾的 TouchMove 多指互动灵敏度。
-4. **SEO 与社交卡片 (OpenGraph)**：
-   - 在 `index.html` 中补齐 Twitter Card、OG Image、元描述等标签，提升在推特 / 微信中的分享展示效果。
+GitHub API 在浏览器验收中模拟 503，验证回退；Google Fonts 用空样式响应保证截图稳定。详见 TEST_REPORT.md。CI 已配置同样的检查流程，但尚未远程执行。
 
----
-*本文档已在代码仓库根目录持久化保存为 `PROJECT_HANDOVER.md`。接手项目时优先阅读本指南！*
+本轮没有提交、推送或部署。后续维护入口：RUN.md、CONTRIBUTING.md、tests/、RESEARCH_NOTES.md。

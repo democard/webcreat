@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { createCanvasAnimation } from "../../lib/canvasAnimation";
 import { emblemPoints } from "../../data/emblemPoints";
 
 export const HeroEmblemCanvas: React.FC = () => {
@@ -12,8 +13,6 @@ export const HeroEmblemCanvas: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
-    let isRunning = true;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = 340;
     let height = 340;
@@ -84,6 +83,7 @@ export const HeroEmblemCanvas: React.FC = () => {
 
     const handleResize = () => {
       initCanvas();
+      animation.invalidate();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -108,31 +108,17 @@ export const HeroEmblemCanvas: React.FC = () => {
       mouse.targetY = -1000;
     };
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        isRunning = false;
-        cancelAnimationFrame(animationFrameId);
-      } else {
-        if (!isRunning) {
-          isRunning = true;
-          animationFrameId = requestAnimationFrame(render);
-        }
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
     container.addEventListener("mousemove", handleMouseMove);
     container.addEventListener("mouseleave", handleLeave);
+    container.addEventListener("touchstart", handleTouchMove, { passive: true });
     container.addEventListener("touchmove", handleTouchMove, { passive: true });
+    container.addEventListener("touchcancel", handleLeave);
     container.addEventListener("touchend", handleLeave);
 
-    let time = 0;
-
-    const render = () => {
-      if (!isRunning) return;
-
-      time += 0.015;
+    const render = (elapsed: number) => {
+      const time = elapsed * 0.9;
 
       mouse.x += (mouse.targetX - mouse.x) * 0.1;
       mouse.y += (mouse.targetY - mouse.y) * 0.1;
@@ -200,30 +186,30 @@ export const HeroEmblemCanvas: React.FC = () => {
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    const animation = createCanvasAnimation(render, container);
 
     return () => {
-      isRunning = false;
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      animation.dispose();
+      resizeObserver.disconnect();
       container.removeEventListener("mousemove", handleMouseMove);
       container.removeEventListener("mouseleave", handleLeave);
+      container.removeEventListener("touchstart", handleTouchMove);
       container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchcancel", handleLeave);
       container.removeEventListener("touchend", handleLeave);
-      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[560px] xl:max-w-[600px] aspect-square flex items-center justify-center cursor-pointer select-none overflow-visible"
+      className="hero-emblem relative w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[560px] xl:max-w-[600px] aspect-square flex items-center justify-center cursor-pointer select-none overflow-visible"
     >
       <canvas
         ref={canvasRef}
+        aria-hidden="true"
         className="w-full h-full block bg-transparent"
       />
     </div>

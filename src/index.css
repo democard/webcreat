@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+:focus-visible { outline: 2px solid #22d3ee; outline-offset: 4px; }
+.skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 100; padding: .75rem 1rem; background: #0f172a; color: #e2e8f0; border-radius: .5rem; }
+.skip-link:focus { top: 1rem; }
+dialog::backdrop { background: transparent; }
+.prose { overflow-wrap: anywhere; }
+.prose :is(h1, h2, h3) { scroll-margin-top: 8rem; }
+.prose img { max-width: 100%; height: auto; border-radius: .75rem; }
+.prose pre { position: relative; padding-top: 3.25rem !important; }
+.code-copy-btn { position: absolute; right: .75rem; top: .65rem; padding: .3rem .6rem; border: 1px solid #334155; border-radius: .5rem; background: #0f172a; color: #cbd5e1; font-size: .75rem; cursor: pointer; }
+.code-copy-btn:hover, .code-copy-btn:focus-visible { color: #67e8f9; background: #1e293b; }
+.code-copy-btn:disabled { cursor: wait; }
+.prose table { display: block; overflow-x: auto; }
+html { color-scheme: dark; }
+::selection { background: rgb(34 211 238 / .25); color: #ecfeff; }
+input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+@media print {
+  body, #root > div { background: white !important; color: #111827 !important; }
+  canvas, .skip-link, nav[aria-label="主导航"], nav[aria-label="文章目录"], nav[aria-label="相邻文章"], details, button, footer, .requires-js { display: none !important; }
+  header.sticky { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  main .grid { display: block !important; }
+  h1, h2, h3, p, span, a, li, strong, code { color: #111827 !important; }
+  .prose pre { background: #f8fafc !important; box-shadow: none; padding: 1rem !important; white-space: pre-wrap; break-inside: avoid; }
+  .prose pre code { white-space: pre-wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
 @layer base {
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Mail, Github, Cpu, Binary, Code2, Terminal, Layers, Milestone, Laptop, Heart } from "lucide-react";
+import { Mail, Github, Cpu, Binary, Code2, Terminal, Layers, Milestone, Laptop } from "lucide-react";
 
 export const About: React.FC = () => {
   const milestones = [
@@ -42,7 +42,7 @@ export const About: React.FC = () => {
       </div>
 
       {/* 核心自述 */}
-      <div className="space-y-6 text-sm text-slate-300 leading-relaxed font-sans">
+      <div className="space-y-6 text-base text-slate-300 leading-relaxed font-sans">
         <p>
           你好，我是 <strong className="text-white font-semibold">democard</strong>。
         </p>
@@ -71,7 +71,7 @@ export const About: React.FC = () => {
                 <Binary className="w-4 h-4 text-cyan-400" />
                 <span>算法与底层协议</span>
               </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed">
                 网络协议分析、几何三边测量估算定位、弱网环境高可靠调度与并发限流。
               </p>
             </div>
@@ -81,7 +81,7 @@ export const About: React.FC = () => {
                 <Cpu className="w-4 h-4 text-indigo-400" />
                 <span>多端与原生架构</span>
               </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed">
                 Python + PySide6 桌面工作台、Kotlin + Jetpack Compose 原生应用与系统级服务集成。
               </p>
             </div>
@@ -91,7 +91,7 @@ export const About: React.FC = () => {
                 <Code2 className="w-4 h-4 text-sky-400" />
                 <span>现代 Web &amp; 高性能交互</span>
               </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed">
                 React 18、TypeScript、TailwindCSS，Canvas/WebGL 粒子流体渲染与自适应响应式设计。
               </p>
             </div>
@@ -111,12 +111,12 @@ export const About: React.FC = () => {
                 key={idx}
                 className="p-3.5 rounded-xl bg-slate-950/20 border border-slate-800/60 backdrop-blur-md flex items-start gap-3"
               >
-                <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] shrink-0">
+                <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-xs shrink-0">
                   {m.year}
                 </span>
                 <div className="space-y-1">
                   <div className="font-semibold text-slate-200">{m.title}</div>
-                  <div className="text-[11px] text-slate-400 leading-relaxed font-sans">{m.desc}</div>
+                  <div className="text-sm text-slate-400 leading-relaxed font-sans">{m.desc}</div>
                 </div>
               </div>
             ))}
@@ -133,12 +133,12 @@ export const About: React.FC = () => {
           <div className="p-4 rounded-xl bg-slate-950/20 border border-slate-800/60 space-y-3 font-mono text-xs">
             {tools.map((group, idx) => (
               <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span className="text-slate-500 text-[11px] w-20 shrink-0">{group.category}：</span>
+                <span className="text-slate-500 text-sm w-20 shrink-0">{group.category}：</span>
                 <div className="flex flex-wrap gap-1.5">
                   {group.items.map((item) => (
                     <span
                       key={item}
-                      className="px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/5 text-[10px]"
+                      className="px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/5 text-xs"
                     >
                       {item}
                     </span>

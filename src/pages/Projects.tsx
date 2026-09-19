@@ -1,169 +1,56 @@
-import React, { useState, useMemo } from "react";
-import { ExternalLink, Github, Star, GitFork, Clock, Cpu, Globe, ArrowRight } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { ArrowUpRight, Github, RefreshCw, Search } from "lucide-react";
 import { Project } from "../types/blog";
+import { ProjectSource } from "../lib/github";
+import { ProjectCard } from "../components/home/ProjectCard";
 
-interface ProjectsProps {
-  projects: Project[];
-}
+interface ProjectsProps { projects: Project[]; loading?: boolean; source?: ProjectSource; onRefresh?: () => void }
 
-export const Projects: React.FC<ProjectsProps> = ({ projects }) => {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+export const Projects: React.FC<ProjectsProps> = ({ projects, loading = false, source = "live", onRefresh }) => {
+  const [category, setCategory] = useState("all");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("updated");
+  const filtered = useMemo(() => projects.filter((project) => {
+    const tags = project.tags.map((tag) => tag.toLowerCase());
+    const matchesCategory = category === "all" || (category === "native"
+      ? tags.some((tag) => ["kotlin", "android", "python", "pyside6", "qt"].includes(tag))
+      : tags.some((tag) => ["typescript", "javascript", "react", "tailwindcss", "html", "css", "canvas"].includes(tag)));
+    const text = [project.title, project.description, ...project.tags].join(" ").toLowerCase();
+    return matchesCategory && query.trim().toLowerCase().split(/\s+/).every((term) => text.includes(term));
+  }).sort((a, b) => sort === "stars" ? (b.stars || 0) - (a.stars || 0) || a.title.localeCompare(b.title) : (b.updatedAt || "").localeCompare(a.updatedAt || "")), [projects, category, query, sort]);
 
-  const filteredProjects = useMemo(() => {
-    if (activeCategory === "all") return projects;
-    if (activeCategory === "native") {
-      return projects.filter(
-        (p) =>
-          p.tags.some((t) => ["Kotlin", "Android", "Python", "PySide6", "Qt"].includes(t)) ||
-          p.title.includes("xmu")
-      );
-    }
-    if (activeCategory === "web") {
-      return projects.filter(
-        (p) =>
-          p.tags.some((t) => ["TypeScript", "React", "TailwindCSS", "Canvas"].includes(t)) ||
-          p.title.includes("web")
-      );
-    }
-    return projects;
-  }, [projects, activeCategory]);
-
-  return (
-    <div className="space-y-8 animate-in fade-in duration-200 w-full mx-auto">
-      {/* 标题 */}
-      <div className="space-y-2 pb-4 border-b border-slate-800/80">
-        <div className="flex items-center gap-2">
-          <Cpu className="w-5 h-5 text-cyan-400" />
-          <h1 className="text-2xl font-bold tracking-tight text-white font-sans">
-            工程与开源仓库 (Repositories)
-          </h1>
+  return <div className="space-y-8">
+    <header className="flex flex-wrap items-end justify-between gap-5 border-b border-slate-800 pb-6">
+      <div className="space-y-3"><p className="font-mono text-xs tracking-[.2em] text-cyan-400">OPEN SOURCE / 开源项目</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white">把想法做成可用的工具。</h1>
+        <p className="text-base text-slate-400">从校园助手到 Web 实验，持续打磨的工程实践。</p>
+      </div>
+      <a href="https://github.com/democard?tab=repositories" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300"><Github className="h-4 w-4" />完整仓库<ArrowUpRight className="h-4 w-4" /></a>
+    </header>
+    <div className="requires-js space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1"><Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <input type="search" aria-label="搜索开源项目" maxLength={120} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="按项目名称、技术栈或描述搜索…"
+            className="w-full rounded-xl border border-slate-800 bg-slate-950/50 py-3 pl-11 pr-4 text-base text-slate-200 placeholder:text-slate-500 focus:border-cyan-500/60" />
         </div>
-        <p className="text-xs font-mono text-slate-400">
-          实时同步自 GitHub (@democard) · 自动提取 README 架构解析 · 点击直接跳转远端
-        </p>
+        <select aria-label="项目排序" value={sort} onChange={(event) => setSort(event.target.value)} className="rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-300">
+          <option value="updated">最近更新</option><option value="stars">最多星标</option>
+        </select>
       </div>
-
-      {/* 分类切换器 */}
-      <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-        <button
-          onClick={() => setActiveCategory("all")}
-          className={`px-3 py-1 rounded-lg border transition-all ${
-            activeCategory === "all"
-              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold"
-              : "bg-slate-950/40 text-slate-400 hover:text-slate-200 border-slate-800/80"
-          }`}
-        >
-          全部工程 ({projects.length})
-        </button>
-        <button
-          onClick={() => setActiveCategory("native")}
-          className={`px-3 py-1 rounded-lg border transition-all ${
-            activeCategory === "native"
-              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold"
-              : "bg-slate-950/40 text-slate-400 hover:text-slate-200 border-slate-800/80"
-          }`}
-        >
-          原生与多端系统
-        </button>
-        <button
-          onClick={() => setActiveCategory("web")}
-          className={`px-3 py-1 rounded-lg border transition-all ${
-            activeCategory === "web"
-              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-semibold"
-              : "bg-slate-950/40 text-slate-400 hover:text-slate-200 border-slate-800/80"
-          }`}
-        >
-          现代 Web 与交互
-        </button>
+      <div className="flex flex-wrap gap-2">{[["all", "全部项目"], ["native", "原生与多端"], ["web", "Web 与交互"]].map(([id, label]) =>
+        <button key={id} aria-pressed={category === id} onClick={() => setCategory(id)} className={`rounded-full border px-4 py-1.5 text-sm ${category === id ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "border-slate-800 text-slate-400 hover:border-slate-600"}`}>{label}</button>)}
       </div>
-
-      {/* 项目网格 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {filteredProjects.map((proj) => (
-          <div
-            key={proj.id}
-            onClick={() => {
-              if (proj.githubUrl) window.open(proj.githubUrl, "_blank");
-            }}
-            className="group relative p-6 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 bg-slate-950/20 hover:bg-slate-900/40 backdrop-blur-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/5"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/0 group-hover:bg-cyan-500/10 rounded-full blur-2xl transition-all duration-300 pointer-events-none" />
-
-            <div className="space-y-2 relative z-10">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-100 group-hover:text-cyan-300 transition-colors font-mono flex items-center gap-2">
-                  <span className="text-cyan-400 group-hover:translate-x-0.5 transition-transform">❯</span>
-                  {proj.title}
-                </span>
-                <ExternalLink className="w-4 h-4 text-slate-600 group-hover:text-cyan-300 transition-colors" />
-              </div>
-              <p className="text-xs text-slate-400 group-hover:text-slate-300 leading-relaxed transition-colors">
-                {proj.description}
-              </p>
-            </div>
-
-            <div className="space-y-2.5 pt-3 border-t border-slate-800/60 relative z-10 text-[11px] font-mono text-slate-500">
-              <div className="flex flex-wrap gap-1.5">
-                {proj.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 group-hover:bg-cyan-950/40 text-slate-400 group-hover:text-cyan-300 border border-white/5 group-hover:border-cyan-500/30 transition-colors"
-                  >
-                    #{t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-slate-500">
-                <div className="flex items-center gap-3">
-                  {proj.stars !== undefined && proj.stars > 0 ? (
-                    <span className="flex items-center gap-1 text-amber-400 font-semibold">
-                      <Star className="w-3 h-3 fill-amber-400" /> {proj.stars}
-                    </span>
-                  ) : (
-                    <span>公开仓库</span>
-                  )}
-                  {proj.demoUrl && (
-                    <a
-                      href={proj.demoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 transition-colors"
-                    >
-                      <Globe className="w-3 h-3" /> 在线演示
-                    </a>
-                  )}
-                </div>
-
-                {proj.updatedAt && (
-                  <span className="flex items-center gap-1 text-slate-500">
-                    <Clock className="w-3 h-3" /> {proj.updatedAt}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 底部 GitHub 跳转 */}
-      <div className="p-6 rounded-2xl border border-slate-800/80 bg-slate-950/30 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="text-slate-200 font-semibold">查看更多开源项目与历史 Commit</div>
-          <div className="text-slate-500 text-[11px]">所有算法实现、原型实验与工程项目均在 GitHub 持续维护。</div>
-        </div>
-        <a
-          href="https://github.com/democard?tab=repositories"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-cyan-200 border border-slate-700/60 hover:border-cyan-500/40 transition-all shrink-0"
-        >
-          <Github className="w-4 h-4" />
-          <span>访问完整仓库列表</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </a>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <p role="status">{filtered.length} 个项目 · {loading ? "正在同步 GitHub…" : source === "cache" ? "来自本地缓存" : source === "fallback" ? "网络暂不可用，展示预置项目" : "已同步 GitHub"} · 最近 30 个仓库中筛选原创项目</p>
+        {onRefresh && <button disabled={loading} onClick={onRefresh} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-cyan-300 disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />刷新</button>}
       </div>
     </div>
-  );
+    <section aria-label="项目列表" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {filtered.map((project) => <ProjectCard key={project.id} project={project} />)}
+      {!filtered.length && <div className="col-span-full rounded-2xl border border-dashed border-slate-700 py-14 text-center">
+        <h2 className="text-lg font-semibold text-slate-200">暂时没有匹配的项目</h2><p className="mt-2 text-sm text-slate-400">换一个关键词，或查看全部项目。</p>
+        <button onClick={() => { setQuery(""); setCategory("all"); }} className="mt-5 rounded-lg bg-cyan-400/10 px-4 py-2 text-sm text-cyan-300">清除筛选</button>
+      </div>}
+    </section>
+  </div>;
 };

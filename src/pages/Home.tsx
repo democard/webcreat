@@ -4,25 +4,21 @@ import { Post, Project } from "../types/blog";
 import { HomeHero } from "../components/home/HomeHero";
 import { ProjectCard } from "../components/home/ProjectCard";
 import { PostItem } from "../components/home/PostItem";
+import { InternalLink } from "../components/common/InternalLink";
 
 interface HomeProps {
   posts: Post[];
   projects: Project[];
-  onSelectPost: (post: Post) => void;
-  onNavigate: (tab: string) => void;
-  onOpenTerminal: () => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
   posts,
   projects,
-  onSelectPost,
-  onNavigate,
 }) => {
   return (
     <div className="space-y-20 animate-in fade-in duration-300 w-full mx-auto">
       {/* 1. Hero 区域 */}
-      <HomeHero onNavigate={onNavigate} />
+      <HomeHero />
 
       {/* 2. 开源工程与仓库 */}
       <section className="space-y-4 pt-2">
@@ -31,16 +27,15 @@ export const Home: React.FC<HomeProps> = ({
             <span className="text-cyan-400 font-mono text-xs font-bold whitespace-nowrap shrink-0">[ 01 ]</span>
             <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5 truncate">
               <span>工程与仓库</span>
-              <span className="hidden sm:inline text-slate-500 font-normal">(LIVE REPOSITORIES)</span>
+              <span className="hidden sm:inline text-slate-500 font-normal">(OPEN SOURCE)</span>
               <Cpu className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             </h2>
           </div>
-          <button
-            onClick={() => onNavigate("projects")}
+          <InternalLink to={{ tab: "projects" }}
             className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono whitespace-nowrap shrink-0"
           >
             全部仓库 ({projects.length}) <ArrowRight className="w-3 h-3" />
-          </button>
+          </InternalLink>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -61,17 +56,16 @@ export const Home: React.FC<HomeProps> = ({
               <Binary className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
             </h2>
           </div>
-          <button
-            onClick={() => onNavigate("blog")}
+          <InternalLink to={{ tab: "blog" }}
             className="text-xs text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1 font-mono whitespace-nowrap shrink-0"
           >
             全部手记 <ArrowRight className="w-3 h-3" />
-          </button>
+          </InternalLink>
         </div>
 
         <div className="space-y-2.5">
           {posts.map((post) => (
-            <PostItem key={post.id} post={post} onSelect={onSelectPost} />
+            <PostItem key={post.id} post={post} />
           ))}
         </div>
       </section>

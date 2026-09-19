@@ -1,71 +1,75 @@
-﻿<div align="center">
+# democard.dev · webcreat
 
-# 🌿 democard.dev (webcreat)
+个人技术博客与开源作品集，使用 React 18、TypeScript、Vite 和 Tailwind CSS。保留透明狼首粒子与暗色视觉，同时提供可直接访问的静态文章、全文搜索和清晰的写作流程。
 
-**极简、现代化、高性能的开源个人博客与技术作品集**
+作者：[@democard](https://github.com/democard) · [已配置的站点地址](https://democard.github.io/webcreat/) · [MIT License](./LICENSE)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![React](https://img.shields.io/badge/React-18.3-61dafb.svg?style=flat-square&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+## 功能
 
-作者：[@democard](https://github.com/democard) · [在线访问博客](https://democard.github.io/webcreat/)
+- **静态阅读**：首页、文章、项目、关于和 404 在构建时生成 HTML；文章直接刷新可用，关闭 JavaScript 仍可阅读和通过链接导航。
+- **独立文章链接**：使用 `/webcreat/posts/<slug>/`，兼容旧的 `#/post/<slug 或 id>` 链接。
+- **Markdown 写作**：独立文件、元数据校验、草稿、自动阅读时长、更新日期；正文在构建时完成清理与代码高亮。
+- **全文搜索**：Ctrl/Cmd+K 打开，搜索标题、摘要、标签和正文，关键词高亮；支持方向键、Enter 和 Esc。
+- **阅读体验**：桌面侧栏目录、手机折叠目录、阅读进度、代码复制、文章分享和相邻文章。
+- **项目展示**：公开 GitHub 仓库同步，30 分钟缓存，搜索、分类和排序；请求失败时可继续浏览缓存或预置项目。
+- **发现与订阅**：每页标题、描述、canonical、分享元数据；文章结构化数据、RSS 和 sitemap。
+- **移动与键盘**：响应式布局、可缩放页面、原生链接和对话框、焦点管理、系统减少动态效果支持。
+- **发布检查**：行为测试、静态产物校验和 Chromium 浏览器验收纳入 GitHub Actions。
 
-</div>
+## 开始
 
----
+使用 Node.js 22.22.2+（22.x）或 24.15+（24.x）；本轮验证环境为 Node.js 24.18.0。
 
-## 🌟 核心特性 (Features)
+```bash
+npm ci
+npm run dev
+```
 
-- ⚡ **DeepSeek 风格流体点阵**：1:1 精确扫描的自定义狼首图腾，支持鼠标扰动与触碰动态彩虹流光变色。
-- 🔄 **GitHub 实时自动同步**：基于公开 API 自动解析个人开源仓库的 README.md 简介与技术栈标签，免去手动维护。
-- ✍️ **Markdown 极速排版引擎**：优雅渲染多级标题、列表、引用与代码块高亮。
-- 🔍 **全局快速搜索 (`Cmd+K` / `Ctrl+K`)**：毫秒级模糊检索文章、技术标签与开源项目。
-- 🎨 **暗黑极致美学**：符合现代暗黑生态的微光边框与通透毛玻璃质感。
-- 🚀 **零配置一键部署**：通过 GitHub Actions 自动编译并发布到 GitHub Pages。
+打开终端打印的地址，默认是 `http://localhost:5173/webcreat/`。
 
----
+```bash
+npm run new:post -- my-first-note
+```
 
-## 🛠️ 项目结构
+编辑生成的 `src/content/posts/my-first-note.md`。完成后将 `draft: true` 改为 `false`；开发服务会重新生成内容。完整字段与维护约定见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+## 检查与预览
+
+依次运行：
+
+```bash
+npm test
+npm run build
+npx playwright install chromium
+npm run test:browser
+npm run preview
+```
+
+构建产物在 `dist/`。浏览器检查自动启动并关闭本地静态服务，截图和报告默认写入 `test-results/`。Linux 首次安装浏览器可使用 `npx playwright install --with-deps chromium`。
+
+## 目录
 
 ```text
 src/
-├── components/
-│   ├── common/       # 基础组件 (DeepSeekWaveCanvas 点阵画布、SearchModal 搜索等)
-│   ├── home/         # 首页高内聚子组件 (HomeHero, ProjectCard, PostItem)
-│   └── layout/       # 布局组件 (Navbar 导航栏、Footer 页脚)
-├── data/             # 本地文章与静态数据
-├── hooks/            # 自定义 Hook (useGitHubProjects 实时同步引擎)
-├── pages/            # 核心路由页面 (Home, BlogList, PostDetail, Projects, About)
-└── types/            # TypeScript 类型定义契约
+├── config/site.ts        # 站点地址、标题与作者信息
+├── content/posts/        # Markdown 原文和元数据
+├── generated/            # 自动生成的文章、索引；不提交
+├── components/           # 布局、搜索、卡片和画布
+├── pages/                # 首页、文章、项目、关于
+├── data/                 # 文章索引入口与预置项目
+├── hooks/                # GitHub 同步
+├── lib/                  # 路由、内容加载、搜索、安全、缓存
+└── entry-server.tsx      # 构建时静态渲染入口
+scripts/                  # 内容校验、新文章、预渲染、产物校验
+tests/                    # 行为测试与浏览器验收
 ```
 
----
+## 文档
 
-## 🚀 本地开发与写作
+- [运行和部署](./RUN.md)
+- [写作和贡献](./CONTRIBUTING.md)
+- [架构与维护交接](./PROJECT_HANDOVER.md)
+- [验收记录及验证边界](./TEST_REPORT.md)
+- [同类项目调研与采用理由](./RESEARCH_NOTES.md)
 
-### 1. 克隆代码
-```bash
-git clone https://github.com/democard/webcreat.git
-cd webcreat
-```
-
-### 2. 安装依赖并启动
-```bash
-npm install
-npm run dev
-```
-打开浏览器访问 `http://localhost:5173` 即可开始本地预览与写作。
-
----
-
-## 👤 作者 (Author)
-
-- **democard** ([@democard](https://github.com/democard))
-- 邮箱联系：[democard666@gmail.com](mailto:democard666@gmail.com)
-
----
-
-## 📄 开源协议 (License)
-
-本项目基于 [MIT License](./LICENSE) 开源。
+默认站点地址为 `https://democard.github.io/webcreat/`，资源前缀由 `src/config/site.ts` 推导。修改域名或仓库路径后必须重新构建。GitHub Pages 工作流在推送到 main/master 后先检查再发布；本轮维护尚未提交、推送或更新线上版本。
