@@ -1,10 +1,10 @@
-# webcreat 验收记录
+﻿# webcreat 验收记录
 
 最近复验：2026-09-19。项目：D:/webcreat。本报告对应当前本地源码和生产构建。
 
 ## 依赖安装
 
-使用 npm 锁文件完成依赖安装，Node.js 24.18.0。移除未使用的 clsx 与 tailwind-merge 后，`npm audit` 未发现已知漏洞。此结果仅代表 2026-09-19 的 npm 审计数据，不替代持续更新。
+使用 npm 锁文件完成依赖安装，Node.js 24.18.0。`npm audit` 未发现已知漏洞。marked、dompurify、highlight.js 已从 dependencies 移至 devDependencies（仅构建期使用，不在客户端 bundle 中）。
 
 Chromium 已在本机安装，浏览器验收通过 playwright-chromium 执行。CI 配置为 Node.js 22，先 npm ci，再安装 Chromium 与所需系统依赖。
 
@@ -18,14 +18,17 @@ Chromium 已在本机安装，浏览器验收通过 playwright-chromium 执行�
 
 | 检查 | 结果 |
 | --- | --- |
-| npm test | 7 个测试文件，38 项通过 |
+| npm test | 7 个测试文件，40 项通过 |
 | npm run build | TypeScript、Vite、静态渲染及产物校验通过 |
 | 静态页面 | 8 页通过标题、链接、资源和元数据检查 |
 | npm run test:browser | 12/12 组通过 |
 | 浏览器运行时 | 未捕获页面异常或 React hydration 错误 |
 | axe 自动规则 | 6 个受检页面/弹窗状态均无违规项 |
+| npm audit | 0 漏洞 |
+| 产物体积预算 | 主 JS gzip 67,946 bytes ≤ 80,000 bytes |
+| 测试覆盖率 | statements 56.17% / branches 66.82% / functions 74.14% / lines 54.45% |
 
-行为测试覆盖内容格式和有效日期、草稿字段、阅读时长、路由、全文搜索、复制成功/失败、Markdown 内容清理、缓存和请求生命周期、动画调度。构建会额外执行地址唯一性校验并排除草稿，静态产物逐篇核对生成正文。
+行为测试覆盖内容格式和有效日期、草稿字段、阅读时长、路由、全文搜索、复制成功/失败、Markdown 内容清理、缓存和请求生命周期、动画调度、GitHub API 成功路径与降级。构建会额外执行地址唯一性校验并排除草稿，静态产物逐篇核对生成正文、og:image 绝对 URL、.nojekyll 存在性和 gzip 体积预算。
 
 12 组浏览器验收：
 1. 桌面首页布局和狼首画布透明性。
@@ -43,21 +46,65 @@ Chromium 已在本机安装，浏览器验收通过 playwright-chromium 执行�
 
 视口：桌面 1440×1000；手机模拟 390×844、像素比 2。axe 使用 wcag2a、wcag2aa、wcag21aa 标签。
 
+## 性能优化记录（2026-09-19 本轮）
+
+### 产物体积
+
+| chunk | raw | gzip | 用途 |
+| --- | --- | --- | --- |
+| index-C0izskWc.js | 212,758 B | 67,946 B | 主入口（React + 路由 + 组件） |
+| emblem-data-Be8EHu4f.js | 63,091 B | 6,811 B | 狼首粒子数据（长效缓存） |
+| PostDetail-VcBt0mBd.js | 8,891 B | 3,574 B | 文章阅读组件（懒加载） |
+| search-B-3wZ5EA.js | 10,289 B | 6,252 B | 搜索索引（懒加载） |
+| index-BTF0Kmjx.css | 34,272 B | 7,261 B | Tailwind 样式 |
+| PostDetail-BEHUn5zE.css | 1,316 B | 617 B | 文章阅读样式 |
+
+文章专属 chunk（按需加载，不计入主 bundle 预算）：
+
+| chunk | raw | gzip |
+| --- | --- | --- |
+| building-xmu-assistant-engineering-retrospective-20-fPQNo.js | 6,131 B | 3,129 B |
+| canvas-fluid-emblem-physics-and-dark-ui-Dp6C7mbB.js | 5,618 B | 2,680 B |
+| zero-bloat-modern-frontend-architecture-DfCXofre.js | 5,424 B | 2,616 B |
+
+主 JS gzip 从 76,839 bytes 降至 67,946 bytes（↓11.6%），通过 manualChunks 将 emblemPoints 拆为独立长效缓存 chunk。
+
+### 体积预算门禁
+
+`scripts/check-build.ts` 新增 gzip 体积断言：主入口 JS ≤ 80,000 bytes。超限则构建失败，防止未来回退。
+
+### 评估后跳过的项目
+
+| 项 | 理由 |
+| --- | --- |
+| emblemPoints 动态 import | gzip 仅 ~7 KB，收益不足以抵消视觉契约路径改动风险 |
+| emblemPoints 字典编码 | 复杂度高，收益 ~5 KB gzip |
+| ESLint / Prettier | TS strict 已覆盖，项目规模小，新增工具链收益不明确 |
+| 自托管字体 | 改动面大，影响视觉呈现，Google Fonts 当前工作正常 |
+| Lighthouse CI | GitHub Pages 环境分数波动大，易误阻断 |
+| Firefox / WebKit 自动化 | CI 时间翻倍，需 ~400 MB 额外下载 |
+| GitHub API 真实调用测试 | Rate limit 风险，已有 mock 覆盖成功/降级路径 |
+| logo.png 压缩/转 WebP | 第三方 OG 图 WebP 支持不一致 |
+| Service Worker / PWA | 纯静态站无离线需求 |
+| GitHub API SWR 改造 | 现有 30min TTL + stale-on-error 实现已完善 |
+
 ## 修复记录
 
 本轮修复并复验了搜索弹窗 Tab 边界、灰色小字对比度、无 JavaScript 图腾资源路径，以及静态 HTML 与客户端初始化一致性相关问题。产物校验改为核对实际生成正文，支持没有章节目录的短文；浏览器验收自动读取部署前缀。完成 Markdown 文件迁移和静态路径升级，保留旧链接兼容。
 
 2026-09-19 复查继续修复了四个边界：历史文章 id 统一迁移到可刷新的 canonical slug；搜索结果跳转后焦点保留在新页面正文；无 JavaScript 的文章列表不再被交互样式隐藏；目录点击会写入可分享的章节锚点。404 页面不再输出 WebSite JSON-LD。TypeScript 已启用未使用局部变量和参数检查，并清理失效回调与两个未使用依赖。
 
-阅读器解析、清理和高亮移到构建阶段。当前主 JS gzip 76.93 kB；文章阅读组件 gzip 3.58 kB，另有按需文章内容、搜索索引和 CSS。体积来自 Vite 构建输出，不等同于首屏全部传输量或真实网络速度。
+阅读器解析、清理和高亮移到构建阶段。
 
-截图与详细浏览器 JSON 默认由验收命令写入 test-results/。本轮产物另存于任务交付目录，便于查看。
+2026-09-19 增量优化轮：manualChunks 拆分 emblemPoints（主 JS gzip ↓11.6%）；构建期依赖分类修正（marked/dompurify/highlight.js → devDependencies）；check-build 扩展（体积预算 + og:image + .nojekyll 断言）；vitest 覆盖率配置与阈值（statements ≥50 / branches ≥60 / functions ≥65 / lines ≥45）；prerender 补充 twitter:image；GitHub API 成功路径测试 +2 项；文档口径与 Git 事实对齐；CONTRIBUTING 追加代码风格约定；RUN.md 追加跨浏览器抽查清单。
+
+截图与详细浏览器 JSON 默认由验收命令写入 test-results/。
 
 ## 已知问题
 
-- 验收使用 Chromium 手机模拟，未进行实体手机、Safari 或 Firefox 验收。
-- GitHub API 在浏览器验收中固定返回 503，以覆盖预置数据回退；网络成功和缓存边界另由行为测试验证，未据此声称在线 API 可用性。
+- 验收使用 Chromium 手机模拟，未进行实体手机、Safari 或 Firefox 验收。RUN.md 已追加手动抽查清单。
+- GitHub API 在浏览器验收中固定返回 503，以覆盖预置数据回退；网络成功和缓存边界另由行为测试验证（本轮新增 2 项成功路径用例），未据此声称在线 API 可用性。
 - 为稳定截图，浏览器验收屏蔽外部字体样式，使用系统回退字体；未做外部字体真实加载和慢网性能量测。
-- 分享文本、地址和元数据已验证，第三方平台的实际分享卡片展示尚未实测。
+- 分享文本、地址和元数据已验证（og:title/description/image/url/type/locale + twitter:card/title/description/image 全部完整），第三方平台的实际分享卡片展示尚未实测。
 - 自动规则不能覆盖全部无障碍需求，也不构成完整 WCAG 认证。
-- 改动尚未提交、推送或上线；GitHub Actions 与托管平台行为需在实际发布后确认。
+- 本轮收尾修改（Phase 1–4）尚在工作区未提交；上一轮改动已提交（commit d25cb78）并推送至 origin/main。GitHub Actions deploy.yml 已触发部署流程。

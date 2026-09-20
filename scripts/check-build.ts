@@ -1,4 +1,5 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
+import { gzipSync } from "node:zlib";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -40,6 +41,11 @@ for (const page of pages) {
     if (body.headings.length) assert(document.querySelector("nav[aria-label='文章目录'] a[href^='#']"), `${page}: no native table of contents`);
   }
   if (page === "404.html") assert(document.querySelector('meta[name="robots"]')?.getAttribute("content")?.includes("noindex"));
+  if (page !== "404.html") {
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    assert(ogImage, `${page}: missing og:image`);
+    assert(ogImage.getAttribute("content")?.startsWith("http"), `${page}: og:image must be absolute URL`);
+  }
   dom.window.close();
 }
 for (const [file, selector, count] of [["feed.xml", "item", posts.length], ["sitemap.xml", "url", pages.length - 1]] as const) {
@@ -47,4 +53,14 @@ for (const [file, selector, count] of [["feed.xml", "item", posts.length], ["sit
   assert.equal(dom.window.document.querySelectorAll(selector).length, count, `${file}: incorrect entries`);
   dom.window.close();
 }
+assert(existsSync(path.join(dist, ".nojekyll")), "missing .nojekyll in dist");
+// Size budget: main entry JS gzip must stay within threshold to guard against regressions.
+const manifest = JSON.parse(await readFile(path.join(dist, ".vite/manifest.json"), "utf8"));
+const mainEntry = manifest["index.html"];
+assert(mainEntry, "manifest: missing index.html entry");
+const mainBundleRaw = await readFile(path.join(dist, mainEntry.file));
+const mainBundleGzip = gzipSync(mainBundleRaw).length;
+const SIZE_BUDGET = 80_000; // 80 KB gzip budget (baseline: 76.93 KB)
+assert(mainBundleGzip <= SIZE_BUDGET, `Bundle size budget exceeded: ${mainBundleGzip} gzip > ${SIZE_BUDGET} limit`);
+console.log(`Main bundle gzip: ${mainBundleGzip} bytes (budget: ${SIZE_BUDGET})`);
 console.log(`Verified ${pages.length} static pages, internal assets, article metadata, RSS, and sitemap.`);

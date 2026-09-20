@@ -44,6 +44,7 @@ try {
     meta("name", "twitter:card", "summary");
     meta("name", "twitter:title", metadata.title);
     meta("name", "twitter:description", metadata.description);
+    meta("name", "twitter:image", absoluteUrl("logo.png"));
     const image = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
     if (image) image.content = absoluteUrl("logo.png");
     const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');

@@ -2,7 +2,7 @@
 
 ## 环境
 
-在项目根目录操作；本机项目位于 D:/webcreat。使用 Node.js 22.22.2+（22.x）或 24.15+（24.x）和 npm。本轮实测 Node.js 24.18.0；依赖由 package-lock.json 锁定。
+在项目根目录操作；本机项目位于 D:/webcreat。CI 使用 Node 22；本地开发支持 Node 22+（包括 Node 24），本轮实测 Node.js 24.18.0。源码不可使用 Node 24 独有 API（CI 为 Node 22）；依赖由 package-lock.json 锁定。
 
 ## 安装和开发
 
@@ -55,4 +55,14 @@ GitHub Pages 仓库站点沿用 /webcreat/ 子路径。构建会输出 blog/inde
 
 RSS 地址为站点前缀下的 feed.xml，站点地图为 sitemap.xml。仓库子路径部署不生成无效的子目录 robots.txt；根路径部署时生成 robots.txt。
 
-本轮代码已完成本地验收，尚未提交或推送；远程 GitHub Actions 与线上发布效果未在本轮执行。
+主体改动已提交（commit d25cb78）并推送至 origin/main，GitHub Actions deploy.yml 已触发部署流程；本轮收尾修改（覆盖率配置、twitter:image、新增 GitHub 测试与文档）尚在工作区未提交。
+
+## 跨浏览器手动抽查清单
+
+自动化验收仅覆盖 Chromium。发布前建议在 Safari 和 Firefox 中手动验证以下关键路径：
+
+1. **首页狼首画布**：粒子动画正常渲染，透明背景无闪烁
+2. **文章直链刷新**：直接访问 `/webcreat/posts/<slug>/` 并刷新，页面完整加载
+3. **搜索弹窗**：Ctrl/Cmd+K 打开搜索，输入关键词，结果可点击跳转
+4. **目录跳转**：文章内目录点击平滑滚动到对应章节
+5. **404 页面**：访问不存在的路径，显示 404 提示且无 console 错误

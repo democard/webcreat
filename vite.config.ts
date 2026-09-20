@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+﻿import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { basePath } from "./src/config/site";
 import { generateContent } from "./scripts/content";
@@ -24,7 +24,16 @@ export default defineConfig({
     },
   }],
   base: basePath,
-  build: { manifest: true },
+  build: {
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "emblem-data": ["./src/data/emblemPoints.ts"]
+        }
+      }
+    }
+  },
   server: {
     port: 5173,
     host: true

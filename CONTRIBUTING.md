@@ -55,3 +55,21 @@ draft: true
 - GitHub 请求可取消且有超时，缓存损坏或限流不能破坏文章与项目回退展示。
 - 剪贴板反馈以实际结果为准，失败时提供手动复制提示。
 - 不提交凭证、node_modules、dist、src/generated 和临时验收产物。
+
+
+## 代码风格约定
+
+本项目不引入 ESLint/Prettier，依靠 TypeScript 严格模式和团队自律维持代码一致性：
+
+- **命名**：组件 PascalCase，变量/函数 camelCase，常量 UPPER_SNAKE_CASE，文件名与导出一致
+- **Import 顺序**：React/外部库 → 内部 lib/hooks → 组件 → 类型/数据，各组之间空行分隔
+- **注释**：公共 API 用 JSDoc，复杂逻辑用行内注释说明"为什么"而非"做什么"
+- **格式**：2 空格缩进，双引号字符串，行尾分号，单行 ≤ 120 字符
+- **TypeScript**：禁止 `: any` / `as any` / `@ts-ignore`，使用精确类型
+
+### 重新评估条件
+
+当以下任一条件满足时，应重新评估引入 ESLint + Prettier：
+- 活跃贡献者超过 3 人
+- 源文件数超过 60 个
+- 出现因代码风格导致的 PR 争议
