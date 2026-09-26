@@ -10,6 +10,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
+      reportsDirectory: "test-results/coverage",
       include: ["src/lib/**", "src/hooks/**", "src/components/**", "scripts/content.ts"],
       exclude: ["src/data/emblemPoints*", "src/generated/**", "**/*.d.ts"],
       thresholds: {

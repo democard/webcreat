@@ -43,6 +43,21 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, initialBody }) => 
   }, []);
 
   useEffect(() => {
+    if (!html) return;
+    // A history destination can mount before its lazy-loaded article has any anchor targets.
+    const frame = requestAnimationFrame(() => {
+      let id = window.location.hash.slice(1);
+      try { id = decodeURIComponent(id); }
+      catch { /* Historical fragments can contain a literal percent sign. */ }
+      const target = id ? document.getElementById(id) : null;
+      if (!target || !articleRef.current?.contains(target)) return;
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [html]);
+
+  useEffect(() => {
     const container = articleRef.current;
     if (!container) return;
     let disposed = false;
@@ -149,14 +164,15 @@ export const PostDetail: React.FC<PostDetailProps> = ({ post, initialBody }) => 
       {headings.length > 0 && <details open className="lg:order-2 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-slate-800 bg-slate-950/40 p-4">
         <summary className="cursor-pointer text-sm font-semibold text-slate-200"><BookOpen className="mr-2 inline h-4 w-4 text-cyan-400" />文章目录</summary>
         <nav aria-label="文章目录" className="mt-3 flex flex-col items-start gap-2">
-          {headings.map((heading) => <a href={`#${heading.id}`} key={heading.id} aria-current={activeHeading === heading.id ? "location" : undefined} className={`text-left text-sm hover:text-cyan-300 ${activeHeading === heading.id ? "text-cyan-300" : "text-slate-400"} ${heading.level === 3 ? "ml-4" : ""}`}
+          {headings.map((heading) => <a href={`#${encodeURIComponent(heading.id)}`} key={heading.id} aria-current={activeHeading === heading.id ? "location" : undefined} className={`text-left text-sm hover:text-cyan-300 ${activeHeading === heading.id ? "text-cyan-300" : "text-slate-400"} ${heading.level === 3 ? "ml-4" : ""}`}
             onClick={(event) => {
+              if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
               event.preventDefault();
               const target = document.getElementById(heading.id);
               target?.focus({ preventScroll: true });
               target?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
               const url = new URL(window.location.href);
-              url.hash = heading.id;
+              url.hash = encodeURIComponent(heading.id);
               window.history.replaceState(null, "", url);
             }}>{heading.text}</a>)}
         </nav>

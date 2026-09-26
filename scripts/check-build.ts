@@ -6,6 +6,7 @@ import path from "node:path";
 import { JSDOM } from "jsdom";
 import { projectRoot } from "./content";
 import { basePath, site } from "../src/config/site";
+import { resolveFragmentTarget } from "./build-links";
 
 const dist = path.join(projectRoot, "dist");
 const posts = JSON.parse(await readFile(path.join(projectRoot, "src/generated/index.json"), "utf8"));
@@ -23,7 +24,7 @@ for (const page of pages) {
   else JSON.parse(structured!.textContent!);
   for (const element of document.querySelectorAll<HTMLLinkElement | HTMLScriptElement | HTMLImageElement | HTMLAnchorElement>("a[href],link[rel=stylesheet],script[src],img[src]")) {
     const url = element.getAttribute("href") || element.getAttribute("src") || "";
-    if (url.startsWith("#")) { assert(document.getElementById(url.slice(1)), `${page}: missing section ${url}`); continue; }
+    if (url.startsWith("#")) { assert(resolveFragmentTarget(document, url), `${page}: missing section ${url}`); continue; }
     if (!url.startsWith(basePath)) continue;
     const local = new URL(url, site.url).pathname.slice(basePath.length);
     assert(existsSync(path.join(dist, local)) || existsSync(path.join(dist, local, "index.html")), `${page}: missing resource ${url}`);

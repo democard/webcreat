@@ -25,7 +25,9 @@ interface AppProps {
 export const App: React.FC<AppProps> = ({ initialRoute, initialArticle, ArticleComponent }) => {
   const [route, setRoute] = useState(() => resolvePostRoute(initialRoute || getRouteFromLocation(window.location), postsData));
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { projects, loading, source, refresh } = useGitHubProjects("democard");
+  const { projects, loading, source, refresh } = useGitHubProjects("democard", {
+    enabled: route.tab === "home" || route.tab === "projects" || isSearchOpen,
+  });
   const selectedPost = route.tab === "post-detail"
     ? postsData.find((post) => post.slug === route.postSlug || post.id === route.postSlug) : undefined;
   const currentTab = route.tab === "post-detail" && !selectedPost ? "not-found" : route.tab;
@@ -39,9 +41,15 @@ export const App: React.FC<AppProps> = ({ initialRoute, initialArticle, ArticleC
 
   useEffect(() => {
     if (window.location.hash.startsWith("#/")) window.history.replaceState(null, "", routeHref(route));
-    const syncRoute = () => {
+    let activeRoute = route;
+    const syncRoute = (event: Event) => {
+      const isLegacyRoute = window.location.hash.startsWith("#/");
       const next = resolvePostRoute(getRouteFromLocation(window.location), postsData);
-      if (window.location.hash.startsWith("#/")) window.history.replaceState(null, "", routeHref(next));
+      // Native section links and same-page history entries keep the browser's scroll/focus behavior.
+      if (!isLegacyRoute && (event.type === "hashchange"
+        || (event.type === "popstate" && routeHref(next) === routeHref(activeRoute)))) return;
+      if (isLegacyRoute) window.history.replaceState(null, "", routeHref(next));
+      activeRoute = next;
       setRoute(next);
       setIsSearchOpen(false);
       window.scrollTo({ top: 0, behavior: "instant" });

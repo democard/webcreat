@@ -39,6 +39,23 @@ export function estimateReadingTime(text: string) {
   return Math.max(1, Math.ceil(han / 350 + words / 200));
 }
 
+/** Legacy ids and canonical slugs share the same article route lookup. */
+export function validatePostIdentifiers(posts: ReadonlyArray<{ filename: string; id: string; slug: string }>) {
+  const identifiers = new Map<string, { filename: string; field: "id" | "slug" }>();
+  for (const post of posts) {
+    for (const field of ["id", "slug"] as const) {
+      if (field === "slug" && post.slug === post.id) continue;
+      const identifier = post[field];
+      const previous = identifiers.get(identifier);
+      if (previous) {
+        throw new Error(`${post.filename}: duplicate article identifier "${identifier}" (${field}); `
+          + `already used by ${previous.filename} (${previous.field})`);
+      }
+      identifiers.set(identifier, { filename: post.filename, field });
+    }
+  }
+}
+
 async function writeChanged(file: string, value: unknown) {
   const content = JSON.stringify(value, null, 2) + "\n";
   if (await readFile(file, "utf8").catch(() => "") !== content) await writeFile(file, content);
@@ -47,10 +64,7 @@ async function writeChanged(file: string, value: unknown) {
 export async function generateContent() {
   const filenames = (await readdir(inputDir)).filter((file) => file.endsWith(".md")).sort();
   const all = await Promise.all(filenames.map(async (file) => parsePost(await readFile(path.join(inputDir, file), "utf8"), file)));
-  for (const field of ["id", "slug"] as const) {
-    const values = all.map((post) => post[field]);
-    if (new Set(values).size !== values.length) throw new Error(`Duplicate article ${field}`);
-  }
+  validatePostIdentifiers(all.map((post, index) => ({ filename: filenames[index], id: post.id, slug: post.slug })));
   const posts = all.filter((post) => !post.draft).sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const dom = new JSDOM("");
   const environment = { document: dom.window.document, purifier: createDOMPurify(dom.window) };

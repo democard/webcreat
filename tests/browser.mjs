@@ -52,6 +52,16 @@ async function context(options = {}) {
 }
 const ready = (page) => page.waitForFunction(() => document.documentElement.dataset.hydrated === "true");
 const layoutFits = async (page) => assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), "page overflows horizontally");
+const sectionReached = (page, id) => page.waitForFunction((targetId) => {
+  const target = document.getElementById(targetId);
+  if (!target) return false;
+  const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  const intended = window.scrollY + target.getBoundingClientRect().top - margin;
+  // Browsers clamp anchor scrolling when a section is close to the end of the document.
+  const maximum = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const expected = Math.min(maximum, Math.max(0, intended));
+  return Math.abs(window.scrollY - expected) <= 2;
+}, id, { timeout: 5000 });
 const accessibility = async (page, label) => {
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   await writeFile(path.join(artifacts, `axe-${label}.json`), JSON.stringify(result.violations, null, 2));
@@ -114,6 +124,27 @@ try {
     await page.screenshot({ path: path.join(artifacts, "article-desktop.png"), fullPage: true });
   });
   await check("article accessibility", () => accessibility(page, "article"));
+  await check("native article fragments preserve the reading position", async () => {
+    await page.goto(`${url}posts/${posts[0].slug}/`);
+    await ready(page);
+    await page.evaluate(() => { window.location.hash = "article-section-3"; });
+    await sectionReached(page, "article-section-3");
+    assert(new URL(page.url()).hash === "#article-section-3");
+  });
+  await check("browser back restores an asynchronously loaded article section", async () => {
+    await page.goto(url);
+    await ready(page);
+    await page.locator(`a[href='${base}posts/${posts[0].slug}/']`).first().click();
+    await page.locator("article[data-post-slug]").waitFor();
+    await page.getByRole("navigation", { name: "文章目录" }).getByRole("link").nth(2).click();
+    const fragment = new URL(page.url()).hash;
+    await page.getByRole("navigation", { name: "主导航" }).getByRole("link", { name: "关于", exact: true }).click();
+    await page.waitForURL(`${url}about/`);
+    await page.goBack();
+    await page.locator("article[data-post-slug]").waitFor();
+    assert.equal(new URL(page.url()).hash, fragment);
+    await sectionReached(page, fragment.slice(1));
+  });
   await check("legacy article URL migration and browser back", async () => {
     await page.goto(`${url}#/post/${posts[0].slug}`);
     await ready(page);
@@ -132,6 +163,38 @@ try {
     assert.equal(await page.locator("main h2").count(), 1);
     await page.getByRole("button", { name: "清除筛选", exact: true }).click();
     await accessibility(page, "blog");
+  });
+  await check("blog navigation clears filters without reloading", async () => {
+    await page.goto(`${url}blog/`); await ready(page);
+    await page.getByRole("button", { name: "Kotlin", exact: true }).click();
+    await page.getByRole("searchbox", { name: "搜索技术笔记" }).fill("assistant");
+    await page.getByRole("navigation", { name: "主导航" }).getByRole("link", { name: "文章", exact: true }).click();
+    await page.waitForURL(`${url}blog/`);
+    assert.equal(await page.getByRole("searchbox", { name: "搜索技术笔记" }).inputValue(), "");
+    assert.equal(await page.getByRole("button", { name: "全部文章", exact: true }).getAttribute("aria-pressed"), "true");
+    assert.equal(await page.locator("main h2").count(), posts.length);
+  });
+  await check("reading pages defer GitHub until project data is requested", async () => {
+    const readingContext = await context();
+    const readingPage = await readingContext.newPage();
+    readingPage.on("pageerror", (error) => errors.push(String(error)));
+    const githubRequests = [];
+    readingPage.on("request", (request) => {
+      if (request.url().startsWith("https://api.github.com/")) githubRequests.push(request.url());
+    });
+    for (const route of [`posts/${posts[0].slug}/`, "blog/", "about/"]) {
+      await readingPage.goto(url + route); await ready(readingPage);
+    }
+    assert.equal(githubRequests.length, 0);
+    const requested = readingPage.waitForRequest("https://api.github.com/**");
+    await readingPage.getByRole("button", { name: "全局搜索", exact: true }).click();
+    await requested;
+    assert.equal(githubRequests.length, 1);
+    await readingPage.getByRole("button", { name: "关闭搜索" }).click();
+    const projectRequest = readingPage.waitForRequest("https://api.github.com/**");
+    await readingPage.getByRole("navigation", { name: "主导航" }).getByRole("link", { name: "项目", exact: true }).click();
+    await projectRequest;
+    assert.equal(githubRequests.length, 2);
   });
   await check("project fallback, filtering and accessible demo links", async () => {
     await page.goto(`${url}projects/`); await ready(page);

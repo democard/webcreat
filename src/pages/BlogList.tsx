@@ -19,7 +19,11 @@ export const BlogList: React.FC<BlogListProps> = ({ posts }) => {
     };
     sync();
     window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
+    window.addEventListener("app:navigate", sync);
+    return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("app:navigate", sync);
+    };
   }, [tags]);
 
   const update = (tag: string, query: string) => {

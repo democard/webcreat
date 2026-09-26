@@ -30,6 +30,7 @@ npm run test:browser
 - npm run build：生成文章 → TypeScript 检查 → Vite 构建 → 静态页面、RSS、sitemap → 检查内部链接、资源和页面元数据。
 - npm run test:browser：使用刚构建的 dist，自动启停临时服务，执行桌面和手机尺寸的 Chromium 检查；报告与截图位于 test-results/。
 - npm run test:watch：持续运行行为测试。修改 Markdown 后建议重新启动测试命令以生成内容。
+- npm run test:coverage：运行完整行为测试和覆盖率门禁；最新 HTML 报告写入 test-results/coverage/index.html，避免改写仓库里历史 coverage 快照。
 
 Linux 的浏览器系统依赖可用 npx playwright install --with-deps chromium 安装。
 浏览器检查需要 Chromium 已安装；普通开发和构建不需要启动浏览器。可通过 WEBCREAT_ARTIFACT_DIR 指定验收产物位置。
@@ -55,7 +56,7 @@ GitHub Pages 仓库站点沿用 /webcreat/ 子路径。构建会输出 blog/inde
 
 RSS 地址为站点前缀下的 feed.xml，站点地图为 sitemap.xml。仓库子路径部署不生成无效的子目录 robots.txt；根路径部署时生成 robots.txt。
 
-主体改动已提交（commit d25cb78）并推送至 origin/main，GitHub Actions deploy.yml 已触发部署流程；本轮收尾修改（覆盖率配置、twitter:image、新增 GitHub 测试与文档）尚在工作区未提交。
+2026-09-25 四轮维护已完成本地验证。提交状态以 Git 历史为准，实际发布状态以 GitHub Actions 部署结果为准；本地验收不代表线上部署完成。
 
 ## 跨浏览器手动抽查清单
 

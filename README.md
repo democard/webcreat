@@ -72,4 +72,4 @@ tests/                    # 行为测试与浏览器验收
 - [验收记录及验证边界](./TEST_REPORT.md)
 - [同类项目调研与采用理由](./RESEARCH_NOTES.md)
 
-默认站点地址为 `https://democard.github.io/webcreat/`，资源前缀由 `src/config/site.ts` 推导。修改域名或仓库路径后必须重新构建。GitHub Pages 工作流在推送到 main/master 后先检查再发布；本轮维护尚未提交、推送或更新线上版本。
+默认站点地址为 `https://democard.github.io/webcreat/`，资源前缀由 `src/config/site.ts` 推导。修改域名或仓库路径后必须重新构建。GitHub Pages 工作流在推送到 main/master 后先检查再发布；实际线上版本以 GitHub Actions 的部署结果为准。

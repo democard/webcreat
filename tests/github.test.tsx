@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { cacheKey, CACHE_TTL, extractSummary, fetchProjects, readProjectsCache, safeWebUrl, writeProjectsCache } from "../src/lib/github";
 import { useGitHubProjects } from "../src/hooks/useGitHubProjects";
 
@@ -7,6 +7,52 @@ const projects = [{ id: "1", title: "Cached project", description: "Cached descr
 const repo = (id: number) => ({ id, name: `repo-${id}`, fork: false, default_branch: "release/docs", description: "Repository description", language: "TypeScript", topics: [], homepage: "javascript:alert(1)", stargazers_count: 1, forks_count: 0, updated_at: "2026-09-07T12:00:00Z" });
 
 describe("GitHub cache and fetching", () => {
+  it("defers requests until projects are needed and reuses the cache when re-enabled", async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
+    vi.stubGlobal("fetch", fetch);
+    const { result, rerender } = renderHook(({ enabled }) => useGitHubProjects("alice", { enabled }), {
+      initialProps: { enabled: false },
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    rerender({ enabled: true });
+    await waitFor(() => expect(readProjectsCache("alice")?.data).toEqual([]));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    rerender({ enabled: false });
+    rerender({ enabled: true });
+    expect(result.current.source).toBe("cache");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it("cancels requests when projects are no longer visible", () => {
+    let requestSignal: AbortSignal | undefined;
+    vi.stubGlobal("fetch", vi.fn((_url, options) => new Promise((_resolve, reject) => {
+      requestSignal = options.signal;
+      options.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+    })));
+    const { result, rerender } = renderHook(({ enabled }) => useGitHubProjects("alice", { enabled }), {
+      initialProps: { enabled: true },
+    });
+    expect(requestSignal?.aborted).toBe(false);
+    rerender({ enabled: false });
+    expect(requestSignal?.aborted).toBe(true);
+    expect(result.current.loading).toBe(false);
+  });
+  it("only bypasses a fresh cache for the requested manual refresh", async () => {
+    writeProjectsCache("alice", projects);
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
+    vi.stubGlobal("fetch", fetch);
+    const { result, rerender } = renderHook(({ enabled }) => useGitHubProjects("alice", { enabled }), {
+      initialProps: { enabled: true },
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    act(() => result.current.refresh());
+    await waitFor(() => expect(readProjectsCache("alice")?.data).toEqual([]));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    rerender({ enabled: false });
+    rerender({ enabled: true });
+    expect(result.current.source).toBe("cache");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
   it("serves a fresh user-specific cache without making requests", async () => {
     writeProjectsCache("alice", projects);
     const fetch = vi.fn();

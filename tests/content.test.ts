@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateReadingTime, parsePost } from "../scripts/content";
+import { estimateReadingTime, parsePost, validatePostIdentifiers } from "../scripts/content";
 import { rankPosts, searchExcerpt } from "../src/lib/search";
 import { postsData } from "../src/data/posts";
 
@@ -24,6 +24,32 @@ describe("Markdown publication contract", () => {
   it("estimates mixed Chinese and English reading time", () => {
     expect(estimateReadingTime("中".repeat(350) + " word".repeat(200))).toBe(2);
     expect(estimateReadingTime("短文")).toBe(1);
+  });
+  it("allows an article to use its own slug as its legacy id", () => {
+    expect(() => validatePostIdentifiers([
+      { filename: "hello.md", id: "hello", slug: "hello" },
+      { filename: "other.md", id: "legacy-other", slug: "other" },
+    ])).not.toThrow();
+  });
+  it.each([
+    ["duplicate ids", { id: "legacy-first", slug: "second" }, "legacy-first"],
+    ["duplicate slugs", { id: "legacy-second", slug: "first" }, "first"],
+    ["id matching another slug", { id: "first", slug: "second" }, "first"],
+    ["slug matching another id", { id: "legacy-second", slug: "legacy-first" }, "legacy-first"],
+  ])("rejects %s and identifies both source files", (_label, second, identifier) => {
+    expect(() => validatePostIdentifiers([
+      { filename: "first.md", id: "legacy-first", slug: "first" },
+      { filename: "second.md", ...second },
+    ])).toThrow(new RegExp(`second\\.md.*${identifier}.*first\\.md`));
+  });
+  it("checks draft identifiers together with published articles", () => {
+    const draft = parsePost(fixture.replace("slug: hello-world", "slug: hello-world\nid: legacy-draft"), "draft.md");
+    const published = parsePost(fixture.replace("slug: hello-world", "slug: published\nid: hello-world")
+      .replace("draft: true", "draft: false"), "published.md");
+    expect(() => validatePostIdentifiers([
+      { filename: "draft.md", ...draft },
+      { filename: "published.md", ...published },
+    ])).toThrow(/published\.md.*hello-world.*draft\.md/);
   });
 });
 
