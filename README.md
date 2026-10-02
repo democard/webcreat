@@ -62,14 +62,17 @@ src/
 └── entry-server.tsx      # 构建时静态渲染入口
 scripts/                  # 内容校验、新文章、预渲染、产物校验
 tests/                    # 行为测试与浏览器验收
+docs/                     # 运行指南、架构、调研和历史验收记录
 ```
 
 ## 文档
 
-- [运行和部署](./RUN.md)
+[文档导航](./docs/README.md)按运行、维护和历史记录分类。
+
+- [运行和部署](./docs/RUN.md)
 - [写作和贡献](./CONTRIBUTING.md)
-- [架构与维护交接](./PROJECT_HANDOVER.md)
-- [验收记录及验证边界](./TEST_REPORT.md)
-- [同类项目调研与采用理由](./RESEARCH_NOTES.md)
+- [架构与维护交接](./docs/PROJECT_HANDOVER.md)
+- [验收记录及验证边界](./docs/TEST_REPORT.md)
+- [同类项目调研与采用理由](./docs/RESEARCH_NOTES.md)
 
 默认站点地址为 `https://democard.github.io/webcreat/`，资源前缀由 `src/config/site.ts` 推导。修改域名或仓库路径后必须重新构建。GitHub Pages 工作流在推送到 main/master 后先检查再发布；实际线上版本以 GitHub Actions 的部署结果为准。

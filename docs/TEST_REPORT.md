@@ -14,10 +14,10 @@
 ### 当前验证结果与证据
 
 - 环境：复用已安装依赖和锁文件，Node.js 24.18.0、npm 11.16.0；未升级或添加依赖。
-- `npm run test:coverage -- --reporter=default --reporter=json --outputFile=test-results/unit-report.json`：10 个文件、73/73 通过。新增 33 项回归；[行为测试报告](./test-results/unit-report.json)。
-- 覆盖率：statements 58.80%、branches 69.50%、functions 76.97%、lines 56.81%，所有现有门槛通过。[当前覆盖率报告](./test-results/coverage/index.html) 写入忽略目录，不再改写仓库中的历史 coverage 快照。覆盖率分母沿用现有配置，不代表全站全部源码。
-- `npm run build`：TypeScript、Vite、预渲染及 8 页产物检查通过；RSS、sitemap、元数据、资源和体积预算通过。[构建日志](./test-results/build.log)。主入口 gzip 68,093 bytes，低于 80,000 bytes 门槛；本轮基线为 67,946 bytes，本轮优化收益在减少网络请求，未宣称包体积下降。
-- `npm run test:browser`：16/16 通过；[浏览器报告](./test-results/browser-report.json)、[运行日志](./test-results/browser.log)。新增覆盖普通锚点、带章节的文章后退、同页清空列表筛选、延迟 GitHub 请求。
+- `npm run test:coverage -- --reporter=default --reporter=json --outputFile=test-results/unit-report.json`：10 个文件、73/73 通过。新增 33 项回归；行为测试报告（仓库根目录下的 `test-results/unit-report.json`，仅本地生成）。
+- 覆盖率：statements 58.80%、branches 69.50%、functions 76.97%、lines 56.81%，所有现有门槛通过。当前覆盖率报告（仓库根目录下的 `test-results/coverage/index.html`，仅本地生成） 写入忽略目录，不再改写Git 历史中的 coverage 快照。覆盖率分母沿用现有配置，不代表全站全部源码。
+- `npm run build`：TypeScript、Vite、预渲染及 8 页产物检查通过；RSS、sitemap、元数据、资源和体积预算通过。构建日志（仓库根目录下的 `test-results/build.log`，仅本地生成）。主入口 gzip 68,093 bytes，低于 80,000 bytes 门槛；本轮基线为 67,946 bytes，本轮优化收益在减少网络请求，未宣称包体积下降。
+- `npm run test:browser`：16/16 通过；浏览器报告（仓库根目录下的 `test-results/browser-report.json`，仅本地生成）、运行日志（仓库根目录下的 `test-results/browser.log`，仅本地生成）。新增覆盖普通锚点、带章节的文章后退、同页清空列表筛选、延迟 GitHub 请求。
 - GitHub 请求检查：新浏览器上下文直接访问文章、列表、关于页时累计请求为 0；打开搜索后为 1；模拟 503 后进入项目页按需再请求。此处验证请求触发时机，不代表线上网络速度。
 - 6 个受检页面/弹窗状态的所选 axe 规则零违规；捕获的运行时与 hydration 错误列表为空；桌面首页和手机文章截图已查看，未发现布局溢出或视觉约定变化。
 - 浏览器脚本持有并关闭自己的临时 127.0.0.1 随机端口服务和浏览器上下文，最终命令退出码为 0；未留下本轮预览服务。

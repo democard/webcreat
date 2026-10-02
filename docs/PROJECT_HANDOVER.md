@@ -79,4 +79,4 @@ SSR 与客户端首次渲染都使用预置项目，挂载后应用缓存/网络
 
 GitHub API 在浏览器验收中模拟 503，验证回退；Google Fonts 用空样式响应保证截图稳定。详见 TEST_REPORT.md。CI 已配置同样的检查流程，但尚未远程执行。
 
-主体改动已提交（commit d25cb78）并推送至 origin/main，GitHub Actions deploy.yml 已触发部署流程；本轮收尾修改尚在工作区未提交。后续维护入口：RUN.md、CONTRIBUTING.md、tests/、RESEARCH_NOTES.md。
+主体改动已提交（commit d25cb78）并推送至 origin/main，GitHub Actions deploy.yml 已触发部署流程；本轮收尾修改尚在工作区未提交。后续维护入口：[运行指南](RUN.md)、[贡献指南](../CONTRIBUTING.md)、[测试](../tests/)、[调研记录](RESEARCH_NOTES.md)。
