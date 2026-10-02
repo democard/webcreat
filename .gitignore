@@ -26,9 +26,7 @@ playwright-report/
 *.sln
 *.sw?
 
-# Temporary test outputs
-*.png
-*.jpg
-*.jpeg
+# Generated coverage and temporary test outputs
+/coverage/
 scratch/
 .tempmediaStorage/

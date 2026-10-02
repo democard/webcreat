@@ -2,7 +2,7 @@
 
 ## 环境
 
-在项目根目录操作；本机项目位于 D:/webcreat。CI 使用 Node 22；本地开发支持 Node 22+（包括 Node 24），本轮实测 Node.js 24.18.0。源码不可使用 Node 24 独有 API（CI 为 Node 22）；依赖由 package-lock.json 锁定。
+以下命令均在克隆后的项目根目录操作。CI 使用 Node 22；本地开发支持 Node 22+（包括 Node 24），本轮实测 Node.js 24.18.0。源码不可使用 Node 24 独有 API（CI 为 Node 22）；依赖由 package-lock.json 锁定。
 
 ## 安装和开发
 
@@ -30,7 +30,7 @@ npm run test:browser
 - npm run build：生成文章 → TypeScript 检查 → Vite 构建 → 静态页面、RSS、sitemap → 检查内部链接、资源和页面元数据。
 - npm run test:browser：使用刚构建的 dist，自动启停临时服务，执行桌面和手机尺寸的 Chromium 检查；报告与截图位于 test-results/。
 - npm run test:watch：持续运行行为测试。修改 Markdown 后建议重新启动测试命令以生成内容。
-- npm run test:coverage：运行完整行为测试和覆盖率门禁；最新 HTML 报告写入 test-results/coverage/index.html，避免改写仓库里历史 coverage 快照。
+- npm run test:coverage：运行完整行为测试和覆盖率门禁；HTML 报告写入 test-results/coverage/index.html；覆盖率报告属于本地生成产物，不提交 Git。旧 coverage/ 快照可通过 Git 历史查看。
 
 Linux 的浏览器系统依赖可用 npx playwright install --with-deps chromium 安装。
 浏览器检查需要 Chromium 已安装；普通开发和构建不需要启动浏览器。可通过 WEBCREAT_ARTIFACT_DIR 指定验收产物位置。
